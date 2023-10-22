@@ -308,6 +308,77 @@ key_name_to_hid_report_code = {
     "KEY_MEDIA_CALC": 0xfb
 }
 
+# TODO Currently done with copilot, needs extra verification
+def qwerty_to_colemak_dh(key):
+    if key == "KEY_Q":
+        return "KEY_Q"
+    elif key == "KEY_W":
+        return "KEY_W"
+    elif key == "KEY_E":
+        return "KEY_F"
+    elif key == "KEY_R":
+        return "KEY_P"
+    elif key == "KEY_T":
+        return "KEY_G"
+    elif key == "KEY_Y":
+        return "KEY_J"
+    elif key == "KEY_U":
+        return "KEY_L"
+    elif key == "KEY_I":
+        return "KEY_U"
+    elif key == "KEY_O":
+        return "KEY_Y"
+    elif key == "KEY_P":
+        return "KEY_SEMICOLON"
+    elif key == "KEY_LEFTBRACE":
+        return "KEY_LEFTBRACE"
+    elif key == "KEY_RIGHTBRACE":
+        return "KEY_RIGHTBRACE"
+    elif key == "KEY_A":
+        return "KEY_A"
+    elif key == "KEY_S":
+        return "KEY_R"
+    elif key == "KEY_D":
+        return "KEY_S"
+    elif key == "KEY_F":
+        return "KEY_T"
+    elif key == "KEY_G":
+        return "KEY_D"
+    elif key == "KEY_H":
+        return "KEY_H"
+    elif key == "KEY_J":
+        return "KEY_N"
+    elif key == "KEY_K":
+        return "KEY_E"
+    elif key == "KEY_L":
+        return "KEY_I"
+    elif key == "KEY_SEMICOLON":
+        return "KEY_O"
+    elif key == "KEY_APOSTROPHE":
+        return "KEY_APOSTROPHE"
+    elif key == "KEY_Z":
+        return "KEY_Z"
+    elif key == "KEY_X":
+        return "KEY_X"
+    elif key == "KEY_C":
+        return "KEY_C"
+    elif key == "KEY_V":
+        return "KEY_V"
+    elif key == "KEY_B":
+        return "KEY_B"
+    elif key == "KEY_N":
+        return "KEY_K"
+    elif key == "KEY_M":
+        return "KEY_M"
+    elif key == "KEY_COMMA":
+        return "KEY_COMMA"
+    elif key == "KEY_DOT":
+        return "KEY_DOT"
+    elif key == "KEY_SLASH":
+        return "KEY_SLASH"
+    elif key == "KEY_BACKSLASH":
+        return "KEY_BACK"
+
 class KeyboardServer:
     def __init__(self):
         # Create Flask app
