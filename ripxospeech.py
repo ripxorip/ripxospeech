@@ -287,7 +287,7 @@ key_name_to_hid_report_code = {
     "KEY_RIGHTCTRL": 0xe4,
     "KEY_RIGHTSHIFT": 0xe5,
     "KEY_RIGHTALT": 0xe6,
-    "KEY_RIGHTMETA": 0xe,
+    "KEY_RIGHTMETA": 0xe7,
     "KEY_MEDIA_PLAYPAUSE": 0xe,
     "KEY_MEDIA_STOPCD": 0xe,
     "KEY_MEDIA_PREVIOUSSONG": 0xe,
@@ -386,12 +386,30 @@ def qwerty_to_colemak_dh(key):
 
 class KeyPresser:
     def __init__(self):
-        pass
+        self.active_modifiers = set()
 
     def press_key(self, key):
-        self.write_report(NULL_CHAR*2+chr(key)+NULL_CHAR*5)
+        if key in [0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7]:
+            self.press_modifier(key)
+            return
+        # Construct the first char of the report using the active modifiers
+        first_char = NULL_CHAR
+        # Set each bit corresponding to a modifier key that is currently active
+        # The bit index can be taken from 0xeX where X is the bit index
+        for modifier in self.active_modifiers:
+            first_char = chr(ord(first_char) | (1 << (modifier - 0xe0)))
+        self.write_report(first_char+NULL_CHAR+chr(key)+NULL_CHAR*5)
+
+    def press_modifier(self, modifier):
+        self.active_modifiers.add(modifier)
+
+    def release_modifier(self, modifier):
+        self.active_modifiers.remove(modifier)
 
     def release_key(self, key):
+        if key in [0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7]:
+            self.release_modifier(key)
+            return
         self.write_report(NULL_CHAR*8)
 
     def write_report(self, report):
@@ -412,25 +430,22 @@ class KeyboardServer:
 
     def key_press(self):
         key = flask.request.form['key']
-
         key = int(key, 16)
         pressed_key = x11_key_code_to_name[key]
-        print('Key: {} Pressed key: {}'.format(key, pressed_key))
         colemak_key = qwerty_to_colemak_dh(pressed_key)
         hid_key = key_name_to_hid_report_code[colemak_key]
-
+        print('Press Key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
         self.key_presser.press_key(hid_key)
 
         return 'Key press received: {}'.format(key)
 
     def key_release(self):
         key = flask.request.form['key']
-
         key = int(key, 16)
         pressed_key = x11_key_code_to_name[key]
         colemak_key = qwerty_to_colemak_dh(pressed_key)
         hid_key = key_name_to_hid_report_code[colemak_key]
-        print('Pressed key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
+        print('Release key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
         self.key_presser.release_key(hid_key)
 
         return 'Key release received: {}'.format(key)
