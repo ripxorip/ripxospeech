@@ -6,6 +6,8 @@ import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
+NULL_CHAR = chr(0)
+
 x11_key_code_to_name = {
     0x09: "KEY_ESC",
     0x0A: "KEY_1",
@@ -343,9 +345,9 @@ def qwerty_to_colemak_dh(key):
     elif key == "KEY_F":
         return "KEY_T"
     elif key == "KEY_G":
-        return "KEY_D"
+        return "KEY_G"
     elif key == "KEY_H":
-        return "KEY_H"
+        return "KEY_M"
     elif key == "KEY_J":
         return "KEY_N"
     elif key == "KEY_K":
@@ -357,7 +359,7 @@ def qwerty_to_colemak_dh(key):
     elif key == "KEY_APOSTROPHE":
         return "KEY_APOSTROPHE"
     elif key == "KEY_Z":
-        return "KEY_Z"
+        return "KEY_X"
     elif key == "KEY_X":
         return "KEY_X"
     elif key == "KEY_C":
@@ -365,7 +367,7 @@ def qwerty_to_colemak_dh(key):
     elif key == "KEY_V":
         return "KEY_V"
     elif key == "KEY_B":
-        return "KEY_B"
+        return "KEY_T"
     elif key == "KEY_N":
         return "KEY_K"
     elif key == "KEY_M":
@@ -379,6 +381,22 @@ def qwerty_to_colemak_dh(key):
     elif key == "KEY_BACKSLASH":
         return "KEY_BACK"
 
+
+class KeyPresser:
+    def __init__(self):
+        pass
+
+    def press_key(self, key):
+        self.write_report(NULL_CHAR*2+chr(key)+NULL_CHAR*5)
+
+    def release_key(self, key):
+        self.write_report(NULL_CHAR*8)
+
+    def write_report(self, report):
+        with open('/dev/hidg0', 'rb+') as fd:
+            fd.write(report.encode())
+
+
 class KeyboardServer:
     def __init__(self):
         # Create Flask app
@@ -388,19 +406,30 @@ class KeyboardServer:
         self.app.add_url_rule('/key_press', 'key_press', self.key_press, methods=['POST'])
         self.app.add_url_rule('/key_release', 'key_release', self.key_release, methods=['POST'])
 
+        self.key_presser = KeyPresser()
+
     def key_press(self):
         key = flask.request.form['key']
-        # Parse the key code from hex string to integer
+
         key = int(key, 16)
-        # Print key as hex
-        print('Pressed key: {}'.format(x11_key_code_to_name[key]))
-        print('Which corresponds to HID report code: {}'.format(key_name_to_hid_report_code[x11_key_code_to_name[key]]))
-        # Do something with the key press
+        pressed_key = x11_key_code_to_name[key]
+        colemak_key = qwerty_to_colemak_dh(pressed_key)
+        hid_key = key_name_to_hid_report_code[colemak_key]
+
+        self.key_presser.press_key(hid_key)
+
         return 'Key press received: {}'.format(key)
 
     def key_release(self):
         key = flask.request.form['key']
-        # Do something with the key release
+
+        key = int(key, 16)
+        pressed_key = x11_key_code_to_name[key]
+        colemak_key = qwerty_to_colemak_dh(pressed_key)
+        hid_key = key_name_to_hid_report_code[colemak_key]
+        print('Pressed key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
+        self.key_presser.release_key(hid_key)
+
         return 'Key release received: {}'.format(key)
 
     def run(self):
