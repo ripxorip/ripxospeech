@@ -1,10 +1,9 @@
 import argparse
-import flask
 import sys
+import socket
 
-import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+UDP_IP = "0.0.0.0"
+UDP_PORT = 5000
 
 NULL_CHAR = chr(0)
 
@@ -428,9 +427,7 @@ class KeyboardServer:
 
         self.key_presser = KeyPresser()
 
-    def key_press(self):
-        key = flask.request.form['key']
-        key = int(key, 16)
+    def key_press(self, key):
         pressed_key = x11_key_code_to_name[key]
         colemak_key = qwerty_to_colemak_dh(pressed_key)
         hid_key = key_name_to_hid_report_code[colemak_key]
@@ -439,9 +436,7 @@ class KeyboardServer:
 
         return 'Key press received: {}'.format(key)
 
-    def key_release(self):
-        key = flask.request.form['key']
-        key = int(key, 16)
+    def key_release(self, key):
         pressed_key = x11_key_code_to_name[key]
         colemak_key = qwerty_to_colemak_dh(pressed_key)
         hid_key = key_name_to_hid_report_code[colemak_key]
@@ -450,10 +445,43 @@ class KeyboardServer:
 
         return 'Key release received: {}'.format(key)
 
-    def run(self):
-        # Run Flask app on all interfaces
-        self.app.run(host='0.0.0.0')
+    def handle_keyevent(self, keycode, event_type):
+        """Handle a key event."""
+        if event_type == 0:
+            self.key_press(keycode)
+            # handle key press event
+        elif event_type == 1:
+            self.key_release(keycode)
+            # handle key release event
+        else:
+            print(f"Unknown event type: {event_type}")
 
+    def run(self):
+        """Event loop for UDP."""
+        # create UDP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        # bind socket to address and port
+        sock.bind((UDP_IP, UDP_PORT))
+
+        # event loop
+        while True:
+            data, addr = sock.recvfrom(1024)
+            message = data.decode()
+            parts = message.split(",")
+            if len(parts) != 2:
+                print(f"Invalid message: {message}")
+                continue
+            try:
+                keycode = int(parts[0], 16)
+                event_type = int(parts[1])
+            except ValueError:
+                print(f"Invalid message: {message}")
+                continue
+            self.handle_keyevent(keycode, event_type)
+
+        # cleanup
+        sock.close()
 
 def main():
     # Parse command line arguments
