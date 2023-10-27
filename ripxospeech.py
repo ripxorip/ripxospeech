@@ -418,13 +418,6 @@ class KeyPresser:
 
 class KeyboardServer:
     def __init__(self):
-        # Create Flask app
-        self.app = flask.Flask(__name__)
-
-        # Add routes for key press and key release
-        self.app.add_url_rule('/key_press', 'key_press', self.key_press, methods=['POST'])
-        self.app.add_url_rule('/key_release', 'key_release', self.key_release, methods=['POST'])
-
         self.key_presser = KeyPresser()
 
     def key_press(self, key):
