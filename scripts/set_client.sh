@@ -32,11 +32,11 @@ function stop_all {
 }
 
 function stop_work {
-    #ssh $LINUX_USER@$WORK_CLIENT_ADDR "pactl unload-module \$(pactl list short modules | awk -F'\t' '/server=/ {id=\$1} END {print id}')"
+    echo ""
 }
 
 function stop_station {
-    #ssh $LINUX_USER@$STATION_CLIENT_ADDR "pactl unload-module \$(pactl list short modules | awk -F'\t' '/server=/ {id=\$1} END {print id}')"
+    echo ""
 }
 
 # Parse command line arguments
