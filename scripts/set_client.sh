@@ -13,16 +13,16 @@ LINUX_USER="ripxorip"
 # Define functions for each target
 function setup_work {
     ssh $LINUX_USER@$TALON_SERVER_ADDR "echo -e 'server_ip=$WORK_CLIENT_ADDR\nserver_port=$CLIENT_PORT' > ~/dev/x11_keysender/client.txt"
-    ssh $LINUX_USER@$WORK_CLIENT_ADDR "pactl load-module module-tunnel-sink server=tcp:$TALON_SERVER_ADDR:$TALON_SERVER_PORT"
-    sleep 1
-    ssh $LINUX_USER@$WORK_CLIENT_ADDR "pw-link alsa_input.usb-Focusrite_Scarlett_Solo_USB_Y7MAVDU2758A86-00.analog-stereo:capture_FL tunnel-sink.tcp:$TALON_SERVER_ADDR:$TALON_SERVER_PORT:playback_FL"
+    #ssh $LINUX_USER@$WORK_CLIENT_ADDR "pactl load-module module-tunnel-sink server=tcp:$TALON_SERVER_ADDR:$TALON_SERVER_PORT"
+    #sleep 1
+    #ssh $LINUX_USER@$WORK_CLIENT_ADDR "pw-link alsa_input.usb-Focusrite_Scarlett_Solo_USB_Y7MAVDU2758A86-00.analog-stereo:capture_FL tunnel-sink.tcp:$TALON_SERVER_ADDR:$TALON_SERVER_PORT:playback_FL"
 }
 
 function setup_station {
     ssh $LINUX_USER@$TALON_SERVER_ADDR "echo -e 'server_ip=$STATION_CLIENT_ADDR\nserver_port=$CLIENT_PORT' > ~/dev/x11_keysender/client.txt"
-    ssh $LINUX_USER@$STATION_CLIENT_ADDR "pactl load-module module-tunnel-sink server=tcp:$TALON_SERVER_ADDR:$TALON_SERVER_PORT"
-    sleep 1
-    ssh $LINUX_USER@$STATION_CLIENT_ADDR "pw-link alsa_input.usb-Focusrite_Scarlett_6i6_USB_00003367-00.analog-surround-21:capture_FL tunnel-sink.tcp:$TALON_SERVER_ADDR:$TALON_SERVER_PORT:playback_FL"
+    #ssh $LINUX_USER@$STATION_CLIENT_ADDR "pactl load-module module-tunnel-sink server=tcp:$TALON_SERVER_ADDR:$TALON_SERVER_PORT"
+    #sleep 1
+    #ssh $LINUX_USER@$STATION_CLIENT_ADDR "pw-link alsa_input.usb-Focusrite_Scarlett_6i6_USB_00003367-00.analog-surround-21:capture_FL tunnel-sink.tcp:$TALON_SERVER_ADDR:$TALON_SERVER_PORT:playback_FL"
 }
 
 function stop_all {
@@ -32,11 +32,11 @@ function stop_all {
 }
 
 function stop_work {
-    ssh $LINUX_USER@$WORK_CLIENT_ADDR "pactl unload-module \$(pactl list short modules | awk -F'\t' '/server=/ {id=\$1} END {print id}')"
+    #ssh $LINUX_USER@$WORK_CLIENT_ADDR "pactl unload-module \$(pactl list short modules | awk -F'\t' '/server=/ {id=\$1} END {print id}')"
 }
 
 function stop_station {
-    ssh $LINUX_USER@$STATION_CLIENT_ADDR "pactl unload-module \$(pactl list short modules | awk -F'\t' '/server=/ {id=\$1} END {print id}')"
+    #ssh $LINUX_USER@$STATION_CLIENT_ADDR "pactl unload-module \$(pactl list short modules | awk -F'\t' '/server=/ {id=\$1} END {print id}')"
 }
 
 # Parse command line arguments
