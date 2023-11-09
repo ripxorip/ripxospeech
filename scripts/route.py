@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 import argparse
+import time
 
 IP_ADDR = {
     "lab": "",
@@ -23,9 +24,6 @@ GST_SOUND_PORT="5137"
 LINUX_USER="ripxorip"
 TMUX_SESSION_NAME="ripxospeech"
 
-# gst server example `gst-launch-1.0 -v udpsrc port=1337 caps="application/x-rtp, media=(string)audio, clock-rate=(int)48000, encoding-name=(string)OPUS, payload=(int)96" ! rtpopusdepay ! opusdec ! pulsesink`
-# gst client example `gst-launch-1.0 -v pulsesrc ! opusenc ! rtpopuspay ! udpsink host=100.97.216.58 port=1337`
-
 def run_command_over_ssh(command, server):
     ssh = subprocess.Popen(["ssh", "{}@{}".format(LINUX_USER, server), command],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     result = ssh.stdout.readlines()
@@ -40,6 +38,13 @@ def run_command_over_ssh(command, server):
         res += line.decode("utf-8")
     print(res)
     return res
+
+def start_gst_server(server):
+    run("gst-launch-1.0 -v udpsrc port={} caps=\"application/x-rtp, media=(string)audio, clock-rate=(int)48000, encoding-name=(string)OPUS, payload=(int)96\" ! rtpopusdepay ! opusdec ! pulsesink".format(GST_SOUND_PORT), server)
+
+def route_gst_client(client, server):
+    print("Routing gst client from {} to {}".format(client, server))
+    run("gst-launch-1.0 -v pulsesrc ! opusenc ! rtpopuspay ! udpsink host={} port={}".format(IP_ADDR[server], GST_SOUND_PORT), client)
 
 def run(command, server):
     run_command_over_ssh("tmux send-keys -t {} '{}' C-m".format(TMUX_SESSION_NAME, command), IP_ADDR[server])
@@ -66,6 +71,13 @@ def kill():
         if IP_ADDR[s] != "":
             verify_tmux_session(s)
             abort_command(s)
+            run_command_over_ssh("rm ~/dev/x11_keysender/client.txt", IP_ADDR[s])
+
+def setup_talon(server, client):
+    print("Setting up talon")
+    start_gst_server(server)
+    run_command_over_ssh("echo -e 'server_ip={}\nserver_port={}' > ~/dev/x11_keysender/client.txt".format(IP_ADDR[client], VOICE_BOX_CLIENT_PORT), IP_ADDR[server])
+    route_gst_client(client, server)
 
 def main():
     # Parse the arguments
@@ -79,6 +91,12 @@ def main():
 
     if args.kill:
         kill()
+        exit(0)
+    elif args.engine is None:
+        print("Please specify an engine")
+        exit(1)
+    elif args.engine == "talon":
+        setup_talon("engine_talon", args.client)
 
 if __name__ == "__main__":
     main()
