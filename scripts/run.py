@@ -2,11 +2,12 @@
 
 import subprocess
 import argparse
+import socket
 
 IP_ADDR = {
     "lab": "100.100.250.30",
     "engine_talon": "100.97.216.58",
-    "engine_win11_swe": "",
+    "engine_win11_swe": "100.106.115.19",
     "work": "100.101.164.159",
     "station": "100.121.51.47",
 }
@@ -77,6 +78,13 @@ def setup_talon(server, client):
     run_command_over_ssh("echo -e 'server_ip={}\nserver_port={}' > ~/dev/x11_keysender/client.txt".format(IP_ADDR[client], VOICE_BOX_CLIENT_PORT), IP_ADDR[server])
     route_gst_client(client, server)
 
+def send_udp_string(server, string):
+    # Convert the string to bytes
+    bytes = string.encode('utf-8')
+    # Send the specified bytes to the specified server over UDP using socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.sendto(bytes, (IP_ADDR[server], int(VOICE_BOX_CLIENT_PORT)))
+
 def setup_win11_swe(client):
     server = "lab"
     start_gst_server(server)
@@ -104,22 +112,28 @@ def main():
     # Parse the arguments
     parser = argparse.ArgumentParser(description="Tool to use for routing my voice to different speech recognition servers")
     # Add the arguments
+    parser.add_argument("-a", "--action", help="The action to perform", choices=["kill", "route", "win11_start_dictation", "win11_stop_dictation"], required=True)
     parser.add_argument("-c", "--client", help="The client to use", choices=["work", "station"])
     parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon", "win11_swe"])
     parser.add_argument("-k", "--kill", help="Kill all active recognitions", action="store_true")
     # Parse the arguments
     args = parser.parse_args()
 
-    if args.kill:
+    if args.action == "kill":
         kill()
         exit(0)
-    elif args.engine is None:
-        print("Please specify an engine")
-        exit(1)
-    elif args.engine == "talon":
-        setup_talon("engine_talon", args.client)
-    elif args.engine == "win11_swe":
-        setup_win11_swe(args.client)
+    elif args.action == "route":
+        if args.engine is None:
+            print("Please specify an engine")
+            exit(1)
+        elif args.engine == "talon":
+            setup_talon("engine_talon", args.client)
+        elif args.engine == "win11_swe":
+            setup_win11_swe(args.client)
+    elif args.action == "win11_start_dictation":
+        send_udp_string("engine_win11_swe", "start")
+    elif args.action == "win11_stop_dictation":
+        send_udp_string("engine_win11_swe", "stop")
 
 if __name__ == "__main__":
     main()
