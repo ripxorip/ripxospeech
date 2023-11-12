@@ -129,9 +129,9 @@ def main():
             setup_talon("engine_talon", args.client)
         elif args.engine == "win11_swe":
             setup_win11_swe(args.client)
-    elif args.action == "win11_start_dictation":
+    elif args.action == "start_dictation":
         send_udp_string("engine_win11_swe", "start")
-    elif args.action == "win11_stop_dictation":
+    elif args.action == "stop_dictation":
         send_udp_string("engine_win11_swe", "stop")
 
 if __name__ == "__main__":
