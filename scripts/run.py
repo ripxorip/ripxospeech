@@ -115,7 +115,6 @@ def main():
     parser.add_argument("-a", "--action", help="The action to perform", choices=["kill", "route", "win11_start_dictation", "win11_stop_dictation"], required=True)
     parser.add_argument("-c", "--client", help="The client to use", choices=["work", "station"])
     parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon", "win11_swe"])
-    parser.add_argument("-k", "--kill", help="Kill all active recognitions", action="store_true")
     # Parse the arguments
     args = parser.parse_args()
 
