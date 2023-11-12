@@ -112,7 +112,7 @@ def main():
     # Parse the arguments
     parser = argparse.ArgumentParser(description="Tool to use for routing my voice to different speech recognition servers")
     # Add the arguments
-    parser.add_argument("-a", "--action", help="The action to perform", choices=["kill", "route", "win11_start_dictation", "win11_stop_dictation"], required=True)
+    parser.add_argument("-a", "--action", help="The action to perform", choices=["kill", "route", "start_dictation", "stop_dictation"], required=True)
     parser.add_argument("-c", "--client", help="The client to use", choices=["work", "station"])
     parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon", "win11_swe"])
     # Parse the arguments
