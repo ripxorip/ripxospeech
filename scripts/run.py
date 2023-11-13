@@ -67,10 +67,13 @@ def kill():
             verify_tmux_session(c)
             abort_command(c)
     for s in SERVERS:
-        if IP_ADDR[s] != "":
+        if IP_ADDR[s] != "" and not "win" in s:
             verify_tmux_session(s)
             abort_command(s)
             run_command_over_ssh("rm ~/dev/x11_keysender/client.txt", IP_ADDR[s])
+
+    send_udp_string("engine_win11_swe", "set_clipboard_ip:none")
+    send_udp_string("engine_win11_swe", "set_client_ip:none")
 
 def setup_talon(server, client):
     print("Setting up talon")
@@ -108,11 +111,22 @@ def setup_win11_swe(client):
 
     print("hint: To manually verify that the routing is correct: run the following command: pw-link -I -l")
 
+    tailscale_ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
+    send_udp_string("engine_win11_swe", "set_clipboard_ip:{}".format(tailscale_ip))
+    client_ip = IP_ADDR[client]
+    send_udp_string("engine_win11_swe", "set_client_ip:{}".format(client_ip))
+
+def test():
+    tailscale_ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
+    send_udp_string("engine_win11_swe", "set_clipboard_ip:{}".format(tailscale_ip))
+    client_ip = IP_ADDR["work"]
+    send_udp_string("engine_win11_swe", "set_client_ip:{}".format(client_ip))
+
 def main():
     # Parse the arguments
     parser = argparse.ArgumentParser(description="Tool to use for routing my voice to different speech recognition servers")
     # Add the arguments
-    parser.add_argument("-a", "--action", help="The action to perform", choices=["kill", "route", "start_dictation", "stop_dictation"], required=True)
+    parser.add_argument("-a", "--action", help="The action to perform", choices=["kill", "route", "start_dictation", "stop_dictation", "test"], required=True)
     parser.add_argument("-c", "--client", help="The client to use", choices=["work", "station"])
     parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon", "win11_swe"])
     # Parse the arguments
@@ -120,6 +134,9 @@ def main():
 
     if args.action == "kill":
         kill()
+        exit(0)
+    elif args.action == "test":
+        test()
         exit(0)
     elif args.action == "route":
         if args.engine is None:
