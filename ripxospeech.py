@@ -1,6 +1,8 @@
 import argparse
 import sys
 import socket
+import threading
+import os
 
 UDP_IP = "0.0.0.0"
 UDP_PORT = 5000
@@ -449,10 +451,24 @@ class KeyboardServer:
         else:
             print(f"Unknown event type: {event_type}")
 
+    def read_hid(self):
+        """Read data from HID device."""
+        while True:
+            # read data from HID device
+            hid_data = os.read(self.hid_fd, 1024)
+            # Print the data as hex with a space between each byte
+            print(' '.join(format(x, '02x') for x in hid_data))
+
     def run(self):
         """Event loop for UDP."""
         # create UDP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        self.hid_fd = os.open('/dev/hidg0', os.O_RDONLY)
+
+        # create and start thread for HID device
+        self.hid_thread = threading.Thread(target=self.read_hid)
+        self.hid_thread.start()
 
         # bind socket to address and port
         sock.bind((UDP_IP, UDP_PORT))
@@ -475,6 +491,7 @@ class KeyboardServer:
 
         # cleanup
         sock.close()
+        os.close(hid_fd)
 
 def main():
     # Parse command line arguments
