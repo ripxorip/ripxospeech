@@ -116,6 +116,31 @@ def setup_win11_swe(client):
     client_ip = IP_ADDR[client]
     send_udp_string("engine_win11_swe", "set_client_ip:{}".format(client_ip))
 
+def route_pw_for_win11_swe():
+    server = "lab"
+    run_command_over_ssh("pw-link -d alsa_output.pci-0000_08_00.1.hdmi-stereo-extra1:monitor_FL Win11SweGenuine:input_FL", IP_ADDR[server])
+    run_command_over_ssh("pw-link -d alsa_output.pci-0000_08_00.1.hdmi-stereo-extra1:monitor_FR Win11SweGenuine:input_FR", IP_ADDR[server])
+
+    run_command_over_ssh("pw-link -d Win11SweGenuine:output_FL alsa_output.pci-0000_08_00.1.hdmi-stereo-extra1:playback_FL", IP_ADDR[server])
+    run_command_over_ssh("pw-link -d Win11SweGenuine:output_FR alsa_output.pci-0000_08_00.1.hdmi-stereo-extra1:playback_FR", IP_ADDR[server])
+
+    run_command_over_ssh("pw-link -d gst-launch-1.0:output_FL alsa_output.pci-0000_08_00.1.hdmi-stereo-extra1:playback_FL", IP_ADDR[server])
+    run_command_over_ssh("pw-link -d gst-launch-1.0:output_FR alsa_output.pci-0000_08_00.1.hdmi-stereo-extra1:playback_FR", IP_ADDR[server])
+
+    run_command_over_ssh("pw-link -d Win11SweGenuine:input_FR alsa_output.pci-0000_08_00.1.hdmi-stereo-extra1:monitor_FR", IP_ADDR[server])
+    run_command_over_ssh("pw-link -d Win11SweGenuine:input_FL alsa_output.pci-0000_08_00.1.hdmi-stereo-extra1:monitor_FL", IP_ADDR[server])
+
+    # This one actually routes the audio to the Windows VM
+    run_command_over_ssh("pw-link gst-launch-1.0:output_FL Win11SweGenuine:input_FL", IP_ADDR[server])
+
+    print("hint: To manually verify that the routing is correct: run the following command: pw-link -I -l")
+
+def route(client):
+    start_gst_server("lab")
+    start_gst_server("engine_talon")
+    run("gst-launch-1.0 -v pulsesrc ! opusenc ! rtpopuspay ! multiudpsink clients={}:{},{}:{}".format(IP_ADDR["engine_talon"], GST_SOUND_PORT, IP_ADDR["lab"], GST_SOUND_PORT), client)
+    route_pw_for_win11_swe()
+
 def test():
     tailscale_ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
     send_udp_string("engine_win11_swe", "set_clipboard_ip:{}".format(tailscale_ip))
@@ -139,13 +164,7 @@ def main():
         test()
         exit(0)
     elif args.action == "route":
-        if args.engine is None:
-            print("Please specify an engine")
-            exit(1)
-        elif args.engine == "talon":
-            setup_talon("engine_talon", args.client)
-        elif args.engine == "win11_swe":
-            setup_win11_swe(args.client)
+        route(args.client)
     elif args.action == "start_dictation":
         send_udp_string("engine_win11_swe", "start")
     elif args.action == "stop_dictation":
