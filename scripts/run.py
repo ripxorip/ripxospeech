@@ -3,6 +3,7 @@
 import subprocess
 import argparse
 import socket
+import os
 
 IP_ADDR = {
     "lab": "100.100.250.30",
@@ -141,11 +142,27 @@ def route(client):
     run("gst-launch-1.0 -v pulsesrc ! opusenc ! rtpopuspay ! multiudpsink clients={}:{},{}:{}".format(IP_ADDR["engine_talon"], GST_SOUND_PORT, IP_ADDR["lab"], GST_SOUND_PORT), client)
     route_pw_for_win11_swe()
 
+def get_hid_raw_filename():
+    usb_id = "1D6B:0104"
+    ret = subprocess.check_output(["ls", "/sys/class/hidraw"]).decode("utf-8").strip().splitlines()
+    # Find which hidraw device is the USB device
+    for r in ret:
+        # Get the USB ID of the device
+        p = os.path.join("/sys/class/hidraw", r, "device")
+        if os.path.islink(p):
+            # Get the target of the link
+            target = os.readlink(p)
+            # Check if the target contains the USB ID
+            if usb_id in target:
+                return r
+    print('Error: Could not find the USB device with USB ID: {}'.format(usb_id))
+    exit(1)
+
+def send_string_ripxovoice(s):
+    os.system("echo -ne '{}\n' | sudo tee /dev/{}".format(s, get_hid_raw_filename()))
+
 def test():
-    tailscale_ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
-    send_udp_string("engine_win11_swe", "set_clipboard_ip:{}".format(tailscale_ip))
-    client_ip = IP_ADDR["work"]
-    send_udp_string("engine_win11_swe", "set_client_ip:{}".format(client_ip))
+    send_string_ripxovoice("Hello World")
 
 def main():
     # Parse the arguments
