@@ -23,6 +23,13 @@ GST_SOUND_PORT="5137"
 LINUX_USER="ripxorip"
 TMUX_SESSION_NAME="ripxospeech"
 
+HID_COMMANDS = {
+    "stop": 0x01,
+    "start_talon_command": 0x02,
+    "start_talon_dictation": 0x03,
+    "start_win11_swe": 0x04
+}
+
 def run_command_over_ssh(command, server):
     print("Running command: {} on {}".format(command, server))
     ssh = subprocess.Popen(["ssh", "{}@{}".format(LINUX_USER, server), command],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -154,6 +161,7 @@ def get_hid_raw_filename():
             target = os.readlink(p)
             # Check if the target contains the USB ID
             if usb_id in target:
+                print(r)
                 return r
     print('Error: Could not find the USB device with USB ID: {}'.format(usb_id))
     exit(1)
@@ -161,8 +169,21 @@ def get_hid_raw_filename():
 def send_string_ripxovoice(s):
     os.system("echo -ne '{}\n' | sudo tee /dev/{}".format(s, get_hid_raw_filename()))
 
+def send_bytes_ripxovoice(b):
+    # Send the bytes to the device like
+    # echo -ne '\x01\x00\x00\x00' | sudo dd of=/dev/hidraw5 bs=4 conv=notrunc
+    # Convert the bytes to a string like \x01\x00\x00\x00
+    # Make sure that the size of the bytes is a multiple of 4
+    # Otherwise pad with 0s
+    while len(b) % 4 != 0:
+        b.append(0)
+    s = ""
+    for i in b:
+        s += "\\x{:02x}".format(i)
+    print(s)
+
 def test():
-    send_string_ripxovoice("Hello World")
+    send_bytes_ripxovoice([HID_COMMANDS["start_talon_dictation"]])
 
 def main():
     # Parse the arguments
@@ -170,7 +191,7 @@ def main():
     # Add the arguments
     parser.add_argument("-a", "--action", help="The action to perform", choices=["kill", "route", "start_dictation", "stop_dictation", "test"], required=True)
     parser.add_argument("-c", "--client", help="The client to use", choices=["work", "station"])
-    parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon", "win11_swe"])
+    parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon_dictation", "talon_command", "win11_swe"])
     # Parse the arguments
     args = parser.parse_args()
 
@@ -183,9 +204,14 @@ def main():
     elif args.action == "route":
         route(args.client)
     elif args.action == "start_dictation":
-        send_udp_string("engine_win11_swe", "start")
+        if args.engine == "talon_dictation":
+            send_bytes_ripxovoice(HID_COMMANDS["start_talon_dictation"])
+        elif args.engine == "talon_command":
+            send_bytes_ripxovoice(HID_COMMANDS["start_talon_command"])
+        elif args.engine == "win11_swe":
+            send_bytes_ripxovoice(HID_COMMANDS["start_win11_swe"])
     elif args.action == "stop_dictation":
-        send_udp_string("engine_win11_swe", "stop")
+        send_bytes_ripxovoice(HID_COMMANDS["stop"])
 
 if __name__ == "__main__":
     main()
