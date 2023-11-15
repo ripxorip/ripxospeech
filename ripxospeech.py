@@ -9,6 +9,13 @@ UDP_PORT = 5000
 
 NULL_CHAR = chr(0)
 
+HID_COMMANDS = {
+    "stop": 0x01,
+    "start_talon_command": 0x02,
+    "start_talon_dictation": 0x03,
+    "start_win11_swe": 0x04
+}
+
 x11_key_code_to_name = {
     0x09: "KEY_ESC",
     0x0A: "KEY_1",
