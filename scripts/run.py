@@ -161,13 +161,12 @@ def get_hid_raw_filename():
             target = os.readlink(p)
             # Check if the target contains the USB ID
             if usb_id in target:
-                print(r)
                 return r
     print('Error: Could not find the USB device with USB ID: {}'.format(usb_id))
     exit(1)
 
 def send_string_ripxovoice(s):
-    os.system("echo -ne '{}\n' | sudo tee /dev/{}".format(s, get_hid_raw_filename()))
+    os.system("echo -ne '{}' | sudo tee /dev/{}".format(s, get_hid_raw_filename()))
 
 def send_bytes_ripxovoice(b):
     # Send the bytes to the device like
@@ -180,7 +179,7 @@ def send_bytes_ripxovoice(b):
     s = ""
     for i in b:
         s += "\\x{:02x}".format(i)
-    print(s)
+    send_string_ripxovoice(s)
 
 def test():
     send_bytes_ripxovoice([HID_COMMANDS["start_talon_dictation"]])
@@ -205,13 +204,13 @@ def main():
         route(args.client)
     elif args.action == "start_dictation":
         if args.engine == "talon_dictation":
-            send_bytes_ripxovoice(HID_COMMANDS["start_talon_dictation"])
+            send_bytes_ripxovoice([HID_COMMANDS["start_talon_dictation"]])
         elif args.engine == "talon_command":
-            send_bytes_ripxovoice(HID_COMMANDS["start_talon_command"])
+            send_bytes_ripxovoice([HID_COMMANDS["start_talon_command"]])
         elif args.engine == "win11_swe":
-            send_bytes_ripxovoice(HID_COMMANDS["start_win11_swe"])
+            send_bytes_ripxovoice([HID_COMMANDS["start_win11_swe"]])
     elif args.action == "stop_dictation":
-        send_bytes_ripxovoice(HID_COMMANDS["stop"])
+        send_bytes_ripxovoice([HID_COMMANDS["stop"]])
 
 if __name__ == "__main__":
     main()
