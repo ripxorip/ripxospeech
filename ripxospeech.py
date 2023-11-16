@@ -2,6 +2,7 @@ import argparse
 import sys
 import socket
 import threading
+import subprocess
 import os
 
 UDP_IP = "0.0.0.0"
@@ -10,10 +11,18 @@ UDP_PORT = 5000
 NULL_CHAR = chr(0)
 
 HID_COMMANDS = {
-    "stop": 0x01,
-    "start_talon_command": 0x02,
-    "start_talon_dictation": 0x03,
-    "start_win11_swe": 0x04
+    0x01: "stop",
+    0x02: "start_talon_command",
+    0x03: "start_talon_dictation",
+    0x04: "start_win11_swe"
+}
+
+IP_ADDR = {
+    "lab": "100.100.250.30",
+    "engine_talon": "100.97.216.58",
+    "engine_win11_swe": "100.106.115.19",
+    "work": "100.101.164.159",
+    "station": "100.121.51.47",
 }
 
 x11_key_code_to_name = {
@@ -428,6 +437,7 @@ class KeyPresser:
 class KeyboardServer:
     def __init__(self):
         self.key_presser = KeyPresser()
+        self.ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
 
     def key_press(self, key):
         pressed_key = x11_key_code_to_name[key]
@@ -458,13 +468,34 @@ class KeyboardServer:
         else:
             print(f"Unknown event type: {event_type}")
 
+    def send_udp_string(self, server, string):
+        # Convert the string to bytes
+        bytes = string.encode('utf-8')
+        # Send the specified bytes to the specified server over UDP using socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(bytes, (IP_ADDR[server], int(VOICE_BOX_CLIENT_PORT)))
+
+    def handle_command(self, command):
+        if HID_COMMANDS[command] == "stop":
+            self.send_udp_string("engine_win11_swe", "stop")
+            self.send_udp_string("engine_talon", "stop")
+        elif HID_COMMANDS[command] == "start_talon_command":
+            self.send_udp_string("engine_talon", "start_command@{}".format(self.ip))
+        elif HID_COMMANDS[command] == "start_talon_dictation":
+            self.send_udp_string("engine_talon", "start_dictation@{}".format(self.ip))
+        elif HID_COMMANDS[command] == "start_win11_swe":
+            self.send_udp_string("engine_win11_swe", "start@{}".format(self.ip))
+
     def read_hid(self):
         """Read data from HID device."""
         while True:
             # read data from HID device
             hid_data = os.read(self.hid_fd, 1024)
             # Print the data as hex with a space between each byte
+            print('Got data: ', end='')
             print(' '.join(format(x, '02x') for x in hid_data))
+            command = hid_data[0]
+            self.handle_command(command)
 
     def run(self):
         """Event loop for UDP."""
