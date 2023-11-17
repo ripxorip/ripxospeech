@@ -473,7 +473,7 @@ class KeyboardServer:
         bytes = string.encode('utf-8')
         # Send the specified bytes to the specified server over UDP using socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes, (IP_ADDR[server], int(VOICE_BOX_CLIENT_PORT)))
+        sock.sendto(bytes, (IP_ADDR[server], int(UDP_PORT)))
 
     def handle_command(self, command):
         if HID_COMMANDS[command] == "stop":
