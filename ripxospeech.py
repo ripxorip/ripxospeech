@@ -14,7 +14,8 @@ HID_COMMANDS = {
     0x01: "stop",
     0x02: "start_talon_command",
     0x03: "start_talon_dictation",
-    0x04: "start_win11_swe"
+    0x04: "start_win11_swe",
+    0x05: "start_gdocs"
 }
 
 IP_ADDR = {
@@ -468,23 +469,26 @@ class KeyboardServer:
         else:
             print(f"Unknown event type: {event_type}")
 
-    def send_udp_string(self, server, string):
+    def send_udp_string(self, server, port, string):
         # Convert the string to bytes
         bytes = string.encode('utf-8')
         # Send the specified bytes to the specified server over UDP using socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes, (IP_ADDR[server], int(UDP_PORT)))
+        sock.sendto(bytes, (IP_ADDR[server], port))
 
     def handle_command(self, command):
         if HID_COMMANDS[command] == "stop":
-            self.send_udp_string("engine_win11_swe", "stop")
-            self.send_udp_string("engine_talon", "stop")
+            self.send_udp_string("engine_win11_swe", 5000, "stop")
+            self.send_udp_string("engine_talon", 5000, "stop")
+            self.send_udp_string("engine_talon", 5005, "stop")
         elif HID_COMMANDS[command] == "start_talon_command":
-            self.send_udp_string("engine_talon", "start_command@{}".format(self.ip))
+            self.send_udp_string("engine_talon", 5000, "start_command@{}".format(self.ip))
         elif HID_COMMANDS[command] == "start_talon_dictation":
-            self.send_udp_string("engine_talon", "start_dictation@{}".format(self.ip))
+            self.send_udp_string("engine_talon", 5000, "start_dictation@{}".format(self.ip))
         elif HID_COMMANDS[command] == "start_win11_swe":
-            self.send_udp_string("engine_win11_swe", "start@{}".format(self.ip))
+            self.send_udp_string("engine_win11_swe", 5000, "start@{}".format(self.ip))
+        elif HID_COMMANDS[command] == "start_gdocs":
+            self.send_udp_string("engine_talon", 5005, "start@{}".format(self.ip))
 
     def read_hid(self):
         """Read data from HID device."""
