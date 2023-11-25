@@ -27,7 +27,8 @@ HID_COMMANDS = {
     "stop": 0x01,
     "start_talon_command": 0x02,
     "start_talon_dictation": 0x03,
-    "start_win11_swe": 0x04
+    "start_win11_swe": 0x04,
+    "start_gdocs": 0x05
 }
 
 def run_command_over_ssh(command, server):
@@ -190,7 +191,7 @@ def main():
     # Add the arguments
     parser.add_argument("-a", "--action", help="The action to perform", choices=["kill", "route", "start_dictation", "stop_dictation", "test"], required=True)
     parser.add_argument("-c", "--client", help="The client to use", choices=["work", "station"])
-    parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon_dictation", "talon_command", "win11_swe"])
+    parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon_dictation", "talon_command", "win11_swe", "gdocs"])
     # Parse the arguments
     args = parser.parse_args()
 
@@ -209,6 +210,8 @@ def main():
             send_bytes_ripxovoice([HID_COMMANDS["start_talon_command"]])
         elif args.engine == "win11_swe":
             send_bytes_ripxovoice([HID_COMMANDS["start_win11_swe"]])
+        elif args.engine == "gdocs":
+            send_bytes_ripxovoice([HID_COMMANDS["start_gdocs"]])
     elif args.action == "stop_dictation":
         send_bytes_ripxovoice([HID_COMMANDS["stop"]])
 
