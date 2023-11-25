@@ -4,10 +4,29 @@ import time
 import pytesseract
 from PIL import Image, ImageGrab
 import threading
+import socket
+
+UDP_IP = "0.0.0.0"
+UDP_PORT = 5005
 
 class GoogleDocsDictation:
     def __init__(self):
-        pass
+        voiceboxclient_ip = ""
+
+    def run(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind((UDP_IP, UDP_PORT))
+        # event loop
+        while True:
+            data, addr = sock.recvfrom(1024)
+            message = data.decode()
+            if message.startswith("start@"):
+                voiceboxclient_ip = message.split("@")[1]
+                self.start_dictation()
+            elif message == "end":
+                self.end_dictation()
+        # cleanup
+        sock.close()
 
     def switch_to_chrome(self):
         subprocess.run(["xdotool", "search", "--onlyvisible", "--class", "google-chrome", "windowactivate"])
@@ -53,12 +72,16 @@ def main():
     # Parse the arguments
     parser = argparse.ArgumentParser(description="Tool to use for routing my voice to different speech recognition servers")
     # Add the arguments
-    parser.add_argument("-a", "--action", help="The action to perform", choices=["test"], required=True)
+    parser.add_argument("-a", "--action", help="The action to perform", choices=["test", "docs"], required=True)
     args = parser.parse_args()
 
     if args.action == "test":
         google_docs_dictation = GoogleDocsDictation()
         google_docs_dictation.test()
+        exit(0)
+    elif args.action == "docs":
+        google_docs_dictation = GoogleDocsDictation()
+        google_docs_dictation.run()
         exit(0)
 
 if __name__ == "__main__":
