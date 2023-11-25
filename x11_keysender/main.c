@@ -22,6 +22,11 @@ void press_key(KeySym keysym) {
     XCloseDisplay(display);
 }
 
+void focus_application()
+{
+    system("xdotool search --onlyvisible --name 'x11_keysender' windowactivate");
+}
+
 void press_stop_key() {
     press_key(XK_F10);
 }
@@ -69,6 +74,7 @@ void *listen_udp(void *arg) {
 
         // Check if the message is "start_dictation@ip_addr"
         if (strncmp(buffer, "start_dictation@", 16) == 0) {
+            focus_application();
             // Copy the IP address to the global variable
             strncpy(dictation_ip, buffer + 16, INET_ADDRSTRLEN);
             press_dictation_key();
@@ -135,6 +141,9 @@ void event_loop_x11()
     int s = DefaultScreen(display);
     window = XCreateSimpleWindow(display, RootWindow(display, s), 10, 10, 200, 200, 1,
         BlackPixel(display, s), WhitePixel(display, s));
+
+    /* Set the window title */
+    XStoreName(display, window, "x11_keysender");
 
     /* select all key events */
     XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
