@@ -3,6 +3,7 @@ import subprocess
 import time
 import pytesseract
 from PIL import Image, ImageGrab
+import threading
 
 class GoogleDocsDictation:
     def __init__(self):
@@ -18,15 +19,28 @@ class GoogleDocsDictation:
         subprocess.run(["xdotool", "key", "Delete"])
         subprocess.run(["xdotool", "key", "ctrl+shift+s"])
 
+        self.stop_polling = False
+        self.poll_thread = threading.Thread(target=self.poll_current_text)
+        self.poll_thread.start()
+
+        # Faked stop dictation
         time.sleep(6)
         self.end_dictation()
+        self.stop_polling = True
+        self.poll_thread.join()
 
     def get_current_text(self):
         # Capture screenshot of specific region
         screenshot_cropped = ImageGrab.grab(bbox=(240, 210, 1050, 742))
         # Use pytesseract to extract text from the captured screenshot
         text = pytesseract.image_to_string(screenshot_cropped)
-        print(text)
+        return text
+
+    def poll_current_text(self):
+        while not self.stop_polling:
+            text = self.get_current_text()
+            # FIXME Possibly sleep here to reduce CPU usage
+            print(text)
 
     def end_dictation(self):
         subprocess.run(["xdotool", "key", "Escape"])
