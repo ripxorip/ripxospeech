@@ -23,8 +23,10 @@ class GoogleDocsDictation:
             if message.startswith("start@"):
                 voiceboxclient_ip = message.split("@")[1]
                 self.start_dictation()
-            elif message == "end":
+            elif message == "stop":
                 self.end_dictation()
+                self.stop_polling = True
+                self.poll_thread.join()
         # cleanup
         sock.close()
 
@@ -42,12 +44,6 @@ class GoogleDocsDictation:
         self.poll_thread = threading.Thread(target=self.poll_current_text)
         self.poll_thread.start()
 
-        # Faked stop dictation
-        time.sleep(6)
-        self.end_dictation()
-        self.stop_polling = True
-        self.poll_thread.join()
-
     def get_current_text(self):
         # Capture screenshot of specific region
         screenshot_cropped = ImageGrab.grab(bbox=(240, 210, 1050, 742))
@@ -60,6 +56,7 @@ class GoogleDocsDictation:
             text = self.get_current_text()
             # FIXME Possibly sleep here to reduce CPU usage
             print(text)
+            # FIXME Cont. here by using the same logic as in Form1.cs
 
     def end_dictation(self):
         subprocess.run(["xdotool", "key", "Escape"])
