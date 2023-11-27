@@ -208,6 +208,7 @@ class KeyPresser:
         return
 
     def send_key(self, key, press):
+        press = not press
         if self.test:
             # Get the name of the key from the self.charToKeyCombo dict
             key_name = ""
@@ -225,43 +226,64 @@ class KeyPresser:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 sock.sendto(message.encode(), (self.voiceboxclient_ip, 5000))
                 sock.close()
+                # FIXME tune this delay (Might need to be longer)
+                time.sleep(0.01)
     
     def handle_text_change(self, input_text):
         # Remove the last \n if it exists (strip from tesseract output)
+        #
+        #
         if input_text.endswith("\n"):
             input_text = input_text[:-1]
 
+        # Add whitespace after each newline
+        #
+        #
+        input_text = input_text.replace("\n", " \n")
+
+        # FIXME remove this when I have a better solution for newlines altogether (For now they are removed)
+        input_text = input_text.replace("\n", "")
+
+        # Remove chars that are not in the charToKeyCombo dict
+        #
+        #
+        og_input_text = input_text
+        input_text = "".join([c for c in input_text if c.lower() in self.charToKeyCombo])
+        # Print the removed chars
+        removed_chars = ""
+        for c in og_input_text:
+            if c not in input_text:
+                removed_chars += c
+
+        if removed_chars != "":
+            print("Got unsupported chars:", removed_chars)
+
         # Find out what has been sent
+        #
+        #
         num_identical_chars = 0
-        not_sent_input_text = ""
+        diff = 0
         for i in range(0, len(input_text)):
-            c = input_text[i]
-            if not self.charToKeyCombo.get(c.lower()):
-                print("Key not found in dict:", c)
-                print("(Key as hex:", ord(c), ")")
-                continue
             if len(self.sent_text) > i:
                 if self.sent_text[i] != input_text[i]:
-                    not_sent_input_text += input_text[i]
+                    # delete all chars from i to end of sent_text
+                    diff = len(self.sent_text) - i
+                    self.sent_text = self.sent_text[:i]
+                    break
                 else:
                     num_identical_chars += 1
-            else:
-                not_sent_input_text += input_text[i]
 
         # Remove the chars that are not identical
-        if num_identical_chars != len(self.sent_text):
-            diff = len(self.sent_text) - num_identical_chars
-            print("Removing", diff, "chars")
+        #
+        #
+        if diff > 0:
             for i in range(0, diff):
                 self.process_key("backspace")
-                # Remove the last char from sent_text
-                self.sent_text = self.sent_text[:-1]
 
-        # Send the not sent text
-        for i in range(0, len(not_sent_input_text)):
-            self.process_key(not_sent_input_text[i])
-            self.sent_text += not_sent_input_text[i]
-
+        # Send the remaining chars
+        for i in range(num_identical_chars, len(input_text)):
+            self.process_key(input_text[i])
+            self.sent_text += input_text[i]
 
 class GoogleDocsDictation:
     def __init__(self, test=False):
@@ -287,79 +309,18 @@ class GoogleDocsDictation:
 
     def unittest(self):
         self.kp.reset()
-        self.long_test_data = [
-            "B Meetingnotes &% Emaildraftt @ More\n",
-            "",
-            "",
-            "",
-            "So\n",
-            "So this ..|\n",
-            "So this ..|\n",
-            "So this ..|\n",
-            "So this is:\n",
-            "So this is:\n",
-            "So this is:\n",
-            "So this is:\n",
-            "So:\n\n",
-            "So:\n\n",
-            "So This Is Christmas and... :: |\n",
-            "So This Is Christmas and what:: .--: |\n",
-            "So This Is Christmas and what have ..... |\n",
-            "So This Is Christmas and what have you.\n",
-            "So This Is Christmas and what have you.\n",
-            "So This Is Christmas and what have you.\n",
-            "So This Is Christmas and what have you.\n",
-            "So This Is Christmas and what have you.\n",
-            "So This Is Christmas and what have you.\n",
-            "So This Is Christmas and what have you done]\n",
-            "So This Is Christmas and what have you done]\n",
-            "So This Is Christmas and what have you done]\n",
-            "So This Is Christmas and what have you done]\n",
-            "So This Is Christmas and what have you done,\n",
-            "So This Is Christmas and what have you done]\n",
-            "So This Is Christmas and what have you done,.\n",
-            "So This Is Christmas and what have you done,.\n",
-            "So This Is Christmas and what have you done,.\n",
-            "So This Is Christmas and what have you done, another:\n",
-            "So This Is Christmas and what have you done, another year.\n",
-            "So This Is Christmas and what have you done, another year.\n",
-            "So This Is Christmas and what have you done, another year.\n",
-            "So This Is Christmas and what have you done, another year over.\n",
-            "So This Is Christmas and what have you done, another year over.\n",
-            "So This Is Christmas and what have you done, another year over and\nan. |\n",
-            "So This Is Christmas and what have you done, another year over and\nanew:.:.|\n",
-            "So This Is Christmas and what have you done, another year over and\nanew one:.. ..|\n",
-            "So This Is Christmas and what have you done, another year over and\nanew one:.. ..|\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just: |\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun|\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun|\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun|\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun|\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun||\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun||\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun||\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun||\n",
-            "So This Is Christmas and what have you done, another year over and\na new one just begun.\n",
-        ]
+        # Read the test data from file
+        test_data = []
+        with open("test_input.txt", "r") as f:
+            for line in f:
+                # Remove the surrounding quotes
+                line = line[1:-3]
+                print(line)
+                test_data.append(line[:-1])
 
-        self.test_data = [
-            "B Meetingnotes &% Emaildraftt @ More\n",
-            "",
-            "",
-            "",
-            "So\n",
-            "So this\n",
-            "So this is\n",
-            "So this is Christmas\n",
-        ]
-
-        self.test_data = self.long_test_data
-
-        # FIXME Cont. by adding smarter and more automated testing
-
-        for i in range(len(self.test_data)):
-            print("*** Sending:", self.test_data[i])
-            self.kp.handle_text_change(self.test_data[i])
+        for i in range(len(test_data)):
+            print("*** Sending:", test_data[i])
+            self.kp.handle_text_change(test_data[i])
 
     def switch_to_chrome(self):
         subprocess.run(["xdotool", "search", "--onlyvisible", "--class", "google-chrome", "windowactivate"])
@@ -376,11 +337,18 @@ class GoogleDocsDictation:
         self.poll_thread = threading.Thread(target=self.poll_current_text)
         self.poll_thread.start()
 
-    def get_current_text(self):
+    def get_current_text(self, save_screenshot=False):
         # Capture screenshot of specific region
-        screenshot_cropped = ImageGrab.grab(bbox=(240, 210, 1050, 742))
+        screenshot_cropped = ImageGrab.grab(bbox=(210, 130, 1030, 753))
+        if save_screenshot:
+            screenshot_cropped.save("screenshot.png")
+            # Also save the full screenshot
+            screenshot_full = ImageGrab.grab()
+            screenshot_full.save("screenshot_full.png")
         # Use pytesseract to extract text from the captured screenshot
         text = pytesseract.image_to_string(screenshot_cropped)
+        if text == "B Meetingnotes &% Emaildraftt @ More\n":
+            return ""
         return text
 
     def poll_current_text(self):
@@ -403,12 +371,16 @@ def main():
     # Parse the arguments
     parser = argparse.ArgumentParser(description="Tool to use for routing my voice to different speech recognition servers")
     # Add the arguments
-    parser.add_argument("-a", "--action", help="The action to perform", choices=["test", "docs"], required=True)
+    parser.add_argument("-a", "--action", help="The action to perform", choices=["unittest", "log", "docs"], required=True)
     args = parser.parse_args()
 
-    if args.action == "test":
+    if args.action == "unittest":
         google_docs_dictation = GoogleDocsDictation(test=True)
         google_docs_dictation.unittest()
+        exit(0)
+    elif args.action == "log":
+        google_docs_dictation = GoogleDocsDictation(test=True)
+        google_docs_dictation.run()
         exit(0)
     elif args.action == "docs":
         google_docs_dictation = GoogleDocsDictation()
