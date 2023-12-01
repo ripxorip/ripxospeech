@@ -422,7 +422,8 @@ class KeyPresser:
         self.active_modifiers.add(modifier)
 
     def release_modifier(self, modifier):
-        self.active_modifiers.remove(modifier)
+        if modifier in self.active_modifiers:
+            self.active_modifiers.remove(modifier)
 
     def release_key(self, key):
         if key in [0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7]:
