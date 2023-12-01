@@ -140,7 +140,7 @@ def route_pw_for_win11_swe():
 
 def route(client):
     # E.g. gst-launch-1.0 -v pulsesrc buffer-time=100000 latency-time=10000 ! opusenc ! rtpopuspay ! queue max-size-buffers=200 max-size-time=20000000 max-size-bytes=2000 ! udpsink host=100.106.115.19 port=5137 buffer-size=200
-    run("gst-launch-1.0 -v pulsesrc buffer-time=100000 latency-time=10000 ! opusenc ! rtpopuspay ! queue max-size-buffers=200 max-size-time=20000000 max-size-bytes=2000 ! multiudpsink clients={}:{},{}:{} buffer-size=200".format(IP_ADDR["engine_talon"], GST_SOUND_PORT, IP_ADDR["lab"], GST_SOUND_PORT), client)
+    run("gst-launch-1.0 -v pulsesrc buffer-time=100000 latency-time=10000 ! opusenc ! rtpopuspay ! queue max-size-buffers=200 max-size-time=20000000 max-size-bytes=2000 ! multiudpsink clients={}:{},{}:{} buffer-size=200".format(IP_ADDR["engine_talon"], GST_SOUND_PORT, IP_ADDR["engine_win11_swe"], GST_SOUND_PORT), client)
 
 def get_hid_raw_filename():
     usb_id = "1D6B:0104"
