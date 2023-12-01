@@ -74,7 +74,7 @@ void *listen_udp(void *arg) {
 
         // Check if the message is "start_dictation@ip_addr"
         if (strncmp(buffer, "start_dictation@", 16) == 0) {
-            focus_application();
+            //focus_application();
             // Copy the IP address to the global variable
             strncpy(dictation_ip, buffer + 16, INET_ADDRSTRLEN);
             press_dictation_key();
