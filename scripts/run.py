@@ -75,12 +75,6 @@ def kill():
         if IP_ADDR[c] != "":
             verify_tmux_session(c)
             abort_command(c)
-    for s in SERVERS:
-        if IP_ADDR[s] != "" and not "win" in s:
-            verify_tmux_session(s)
-            abort_command(s)
-            run_command_over_ssh("rm ~/dev/x11_keysender/client.txt", IP_ADDR[s])
-
     send_udp_string("engine_win11_swe", "set_clipboard_ip:none")
     send_udp_string("engine_win11_swe", "set_client_ip:none")
 
@@ -145,10 +139,8 @@ def route_pw_for_win11_swe():
     print("hint: To manually verify that the routing is correct: run the following command: pw-link -I -l")
 
 def route(client):
-    start_gst_server("lab")
-    start_gst_server("engine_talon")
-    run("gst-launch-1.0 -v pulsesrc ! opusenc ! rtpopuspay ! multiudpsink clients={}:{},{}:{}".format(IP_ADDR["engine_talon"], GST_SOUND_PORT, IP_ADDR["lab"], GST_SOUND_PORT), client)
-    route_pw_for_win11_swe()
+    # E.g. gst-launch-1.0 -v pulsesrc buffer-time=100000 latency-time=10000 ! opusenc ! rtpopuspay ! queue max-size-buffers=200 max-size-time=20000000 max-size-bytes=2000 ! udpsink host=100.106.115.19 port=5137 buffer-size=200
+    run("gst-launch-1.0 -v pulsesrc buffer-time=100000 latency-time=10000 ! opusenc ! rtpopuspay ! queue max-size-buffers=200 max-size-time=20000000 max-size-bytes=2000 ! multiudpsink clients={}:{},{}:{} buffer-size=200".format(IP_ADDR["engine_talon"], GST_SOUND_PORT, IP_ADDR["lab"], GST_SOUND_PORT), client)
 
 def get_hid_raw_filename():
     usb_id = "1D6B:0104"
