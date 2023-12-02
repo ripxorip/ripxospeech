@@ -100,12 +100,20 @@ class KeyboardServer:
             self.send_udp_string("engine_talon", 5000, "stop")
             self.send_udp_string("engine_talon", 5005, "stop")
         elif cmd == "start_talon_command":
+            self.send_udp_string("engine_win11_swe", 5000, "stop")
+            self.send_udp_string("engine_talon", 5005, "stop")
             self.send_udp_string("engine_talon", 5000, "start_command@{}".format(self.ip))
         elif cmd == "start_talon_dictation":
+            self.send_udp_string("engine_win11_swe", 5000, "stop")
+            self.send_udp_string("engine_talon", 5005, "stop")
             self.send_udp_string("engine_talon", 5000, "start_dictation@{}".format(self.ip))
         elif cmd == "start_win11_swe":
+            self.send_udp_string("engine_talon", 5000, "stop")
+            self.send_udp_string("engine_talon", 5005, "stop")
             self.send_udp_string("engine_win11_swe", 5000, "start@{}".format(self.ip))
         elif cmd == "start_gdocs":
+            self.send_udp_string("engine_win11_swe", 5000, "stop")
+            self.send_udp_string("engine_talon", 5000, "stop")
             self.send_udp_string("engine_talon", 5005, "start@{}".format(self.ip))
 
     def run(self):
