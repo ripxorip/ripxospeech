@@ -7,6 +7,7 @@ import os
 from keyboard_server.keycodes import *
 from keyboard_server.hid_backend import *
 from keyboard_server.serial_backend import *
+from keyboard_server.utils import *
 from utils.constants import *
 
 NULL_CHAR = chr(0)
@@ -47,9 +48,9 @@ class KeyPresser:
 class KeyboardServer:
     def __init__(self, backend='hid'):
         if backend == 'hid':
-            self.backend = HID_Backend(self.handle_command)
+            self.backend = HID_Backend(self.handle_incoming_command)
         else:
-            self.backend = Serial_Backend(self.handle_command)
+            self.backend = Serial_Backend(self.handle_incoming_command)
 
         self.key_presser = KeyPresser(self.backend)
         self.ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
@@ -83,38 +84,8 @@ class KeyboardServer:
         else:
             print(f"Unknown event type: {event_type}")
 
-    def send_udp_string(self, server, port, string):
-        # Convert the string to bytes
-        bytes = string.encode('utf-8')
-        # Send the specified bytes to the specified server over UDP using socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes, (IP_ADDR[server], port))
-
-    def handle_command(self, command):
-        cmd = ""
-        for key, value in KEYBOARD_SERVER_COMMANDS.items():
-            if value == command:
-                cmd = key
-        if cmd == "stop":
-            self.send_udp_string("engine_win11_swe", 5000, "stop")
-            self.send_udp_string("engine_talon", 5000, "stop")
-            self.send_udp_string("engine_talon", 5005, "stop")
-        elif cmd == "start_talon_command":
-            self.send_udp_string("engine_win11_swe", 5000, "stop")
-            self.send_udp_string("engine_talon", 5005, "stop")
-            self.send_udp_string("engine_talon", 5000, "start_command@{}".format(self.ip))
-        elif cmd == "start_talon_dictation":
-            self.send_udp_string("engine_win11_swe", 5000, "stop")
-            self.send_udp_string("engine_talon", 5005, "stop")
-            self.send_udp_string("engine_talon", 5000, "start_dictation@{}".format(self.ip))
-        elif cmd == "start_win11_swe":
-            self.send_udp_string("engine_talon", 5000, "stop")
-            self.send_udp_string("engine_talon", 5005, "stop")
-            self.send_udp_string("engine_win11_swe", 5000, "start@{}".format(self.ip))
-        elif cmd == "start_gdocs":
-            self.send_udp_string("engine_win11_swe", 5000, "stop")
-            self.send_udp_string("engine_talon", 5000, "stop")
-            self.send_udp_string("engine_talon", 5005, "start@{}".format(self.ip))
+    def handle_incoming_command(self, command):
+        util_handle_command(command, self.ip)
 
     def run(self):
         """Event loop for UDP."""
