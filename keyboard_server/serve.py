@@ -5,12 +5,15 @@ import subprocess
 import os
 
 from keyboard_server.keycodes import *
+from keyboard_server.hid_backend import *
+from keyboard_server.serial_backend import *
 from utils.constants import *
 
 NULL_CHAR = chr(0)
 
 class KeyPresser:
-    def __init__(self):
+    def __init__(self, backend):
+        self.backend = backend
         self.active_modifiers = set()
 
     def press_key(self, key):
@@ -39,13 +42,16 @@ class KeyPresser:
         self.write_report(NULL_CHAR*8)
 
     def write_report(self, report):
-        with open('/dev/hidg0', 'rb+') as fd:
-            fd.write(report.encode())
-
+        self.backend.write(report)
 
 class KeyboardServer:
-    def __init__(self):
-        self.key_presser = KeyPresser()
+    def __init__(self, backend='hid'):
+        if backend == 'hid':
+            self.backend = HID_Backend(self.handle_command)
+        else:
+            self.backend = Serial_Backend(self.handle_command)
+
+        self.key_presser = KeyPresser(self.backend)
         self.ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
 
     def key_press(self, key):
@@ -86,7 +92,7 @@ class KeyboardServer:
 
     def handle_command(self, command):
         cmd = ""
-        for key, value in HID_COMMANDS.items():
+        for key, value in KEYBOARD_SERVER_COMMANDS.items():
             if value == command:
                 cmd = key
         if cmd == "stop":
@@ -102,27 +108,13 @@ class KeyboardServer:
         elif cmd == "start_gdocs":
             self.send_udp_string("engine_talon", 5005, "start@{}".format(self.ip))
 
-    def read_hid(self):
-        """Read data from HID device."""
-        while True:
-            # read data from HID device
-            hid_data = os.read(self.hid_fd, 1024)
-            # Print the data as hex with a space between each byte
-            print('Got data: ', end='')
-            print(' '.join(format(x, '02x') for x in hid_data))
-            command = hid_data[0]
-            self.handle_command(command)
-
     def run(self):
         """Event loop for UDP."""
         # create UDP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self.hid_fd = os.open('/dev/hidg0', os.O_RDONLY)
-
-        # create and start thread for HID device
-        self.hid_thread = threading.Thread(target=self.read_hid)
-        self.hid_thread.start()
+        self.backend_thread = threading.Thread(target=self.backend.read_thread)
+        self.backend_thread.start()
 
         # bind socket to address and port
         sock.bind(("0.0.0.0", int(VOICE_BOX_CLIENT_PORT)))
@@ -145,7 +137,6 @@ class KeyboardServer:
 
         # cleanup
         sock.close()
-        os.close(hid_fd)
 
 def main():
     # Parse command line arguments

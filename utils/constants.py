@@ -17,7 +17,7 @@ GST_SOUND_PORT="5137"
 LINUX_USER="ripxorip"
 TMUX_SESSION_NAME="ripxospeech"
 
-HID_COMMANDS = {
+KEYBOARD_SERVER_COMMANDS = {
     "stop": 0x01,
     "start_talon_command": 0x02,
     "start_talon_dictation": 0x03,

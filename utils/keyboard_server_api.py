@@ -22,7 +22,7 @@ def send_string_to_ripxovoice_hid(s):
     os.system("echo -ne '{}' | sudo tee /dev/{}".format(s, get_hid_raw_filename()))
 
 def send_command_to_keyboard_server(command):
-    b = [HID_COMMANDS[command]]
+    b = [KEYBOARD_SERVER_COMMANDS[command]]
     # Send the bytes to the device like
     # echo -ne '\x01\x00\x00\x00' | sudo dd of=/dev/hidraw5 bs=4 conv=notrunc
     # Convert the bytes to a string like \x01\x00\x00\x00
