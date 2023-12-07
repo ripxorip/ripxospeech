@@ -30,6 +30,33 @@
     in
     {
       formatter = pkgs.nixpkgs-fmt;
+      devShell = pkgs.mkShell {
+        buildInputs = with pkgs; [
+          gst_all_1.gstreamer.dev
+          # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
+          gst_all_1.gstreamer
+          # Common plugins like "filesrc" to combine within e.g. gst-launch
+          gst_all_1.gst-plugins-base
+          # Specialized plugins separated by quality
+          gst_all_1.gst-plugins-good
+          gst_all_1.gst-plugins-bad
+          gst_all_1.gst-plugins-ugly
+          # Plugins to reuse ffmpeg to play almost every video format
+          gst_all_1.gst-libav
+          # Support the Video Audio (Hardware) Acceleration API
+          gst_all_1.gst-vaapi
+          #...
+          python_pkgs.pygobject3
+          python_pkgs.gst-python
+          python_pkgs.numpy
+        ];
+        nativeBuildInputs = with pkgs; [
+          #pkgconfig
+          gobject-introspection
+          #wrapGAppsHook
+          #python3Packages.wrapPython
+        ];
+      };
       packages.default = pkgs.python3Packages.buildPythonApplication {
         pname = "ripxospeech";
         version = "1.0";
