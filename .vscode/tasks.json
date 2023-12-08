@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Linux Gstreamer Python Server",
+            "type": "shell",
+            "command": "nix develop -c bash -c \"python linux_gstreamer_server/serve.py\"",
+            "group": {
+                "kind": "build",
+            }
+        }
+    ]
+}
