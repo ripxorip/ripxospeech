@@ -8,6 +8,14 @@
             "group": {
                 "kind": "build",
             }
+        },
+        {
+            "label": "Linux Gstreamer Python Client",
+            "type": "shell",
+            "command": "nix develop -c bash -c \"python linux_gstreamer_client/linux_gstreamer_client.py\"",
+            "group": {
+                "kind": "build",
+            }
         }
     ]
 }
