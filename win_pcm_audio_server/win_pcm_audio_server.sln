@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "win_pcm_audio_server", "win_pcm_audio_server.csproj", "{40CF9E91-0FAE-403D-8C2E-CB0F7CE3038E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{40CF9E91-0FAE-403D-8C2E-CB0F7CE3038E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40CF9E91-0FAE-403D-8C2E-CB0F7CE3038E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40CF9E91-0FAE-403D-8C2E-CB0F7CE3038E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40CF9E91-0FAE-403D-8C2E-CB0F7CE3038E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6C48EB93-8ED2-48FB-9F8D-0B0CFAC7D43E}
+	EndGlobalSection
+EndGlobal

@@ -36,6 +36,18 @@ win11_keysender/[Bb]in/
 win11_keysender/[Oo]bj/
 win11_keysender/[Ll]og/
 
+win_pcm_audio_server/[Dd]ebug/
+win_pcm_audio_server/[Dd]ebugPublic/
+win_pcm_audio_server/[Rr]elease/
+win_pcm_audio_server/[Rr]eleases/
+x64/
+x86/
+bld/
+win_pcm_audio_server/[Bb]in/
+win_pcm_audio_server/[Oo]bj/
+win_pcm_audio_server/[Ll]og/
+
+
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
