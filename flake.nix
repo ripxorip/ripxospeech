@@ -49,6 +49,7 @@
           python_pkgs.pygobject3
           python_pkgs.gst-python
           python_pkgs.numpy
+          jacktrip
         ];
         nativeBuildInputs = with pkgs; [
           #pkgconfig
