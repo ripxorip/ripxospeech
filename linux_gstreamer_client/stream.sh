@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 gst-launch-1.0 -v \
   pulsesrc buffer-time=100000 latency-time=10000 ! \

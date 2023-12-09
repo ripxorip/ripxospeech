@@ -1,4 +1,4 @@
-#!env bash
+#!/usr/bin/env bash
 
 echo "Before starting, make sure that the folling is running (tmux on lab):"
 echo "1.)  nix develop -c \$SHELL"
