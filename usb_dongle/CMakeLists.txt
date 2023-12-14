@@ -4,7 +4,7 @@ include(pico_sdk_import.cmake)
 # initialize pico-sdk from submodule
 # note: this must happen before project()
 
-project(Ripxospeech_controller_firmware)
+project(ripxospeech_controller_firmware)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -13,7 +13,6 @@ pico_sdk_init()
 
 include_directories(
     ./
-    ../interface
 )
 
 set(Sources
@@ -28,8 +27,7 @@ set(Sources
     keyboard_helper.c
     )
 
-add_executable(Ripxospeech_controller_firmware ${Sources})
-add_executable(Ripxospeech_controller_firmware_no_boot ${Sources})
+add_executable(ripxospeech_controller_firmware ${Sources})
 
 set(Libs
     pico_sync
@@ -42,14 +40,11 @@ set(Libs
 
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(Ripxospeech_controller_firmware ${Libs})
-target_link_libraries(Ripxospeech_controller_firmware_no_boot ${Libs})
+target_link_libraries(ripxospeech_controller_firmware ${Libs})
 
 # create map/bin/hex/uf2 file in addition to ELF.
-pico_add_extra_outputs(Ripxospeech_controller_firmware)
-pico_add_extra_outputs(Ripxospeech_controller_firmware_no_boot)
+pico_add_extra_outputs(ripxospeech_controller_firmware)
 
-set_target_properties(Ripxospeech_controller_firmware PROPERTIES COMPILE_FLAGS "-Wall")
-pico_set_linker_script(Ripxospeech_controller_firmware ${CMAKE_CURRENT_SOURCE_DIR}/app.ld)
+set_target_properties(ripxospeech_controller_firmware PROPERTIES COMPILE_FLAGS "-Wall")
 
 # Generate from build with: cmake -LA .. -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG"
