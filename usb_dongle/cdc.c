@@ -1,6 +1,6 @@
 #include "tusb.h"
 #include "cdc.h"
-#include "pc_protocol.h"
+#include "app.h"
 
 static uint8_t cdc_rx_buf[64];
 static uint8_t cdc_tx_buf[64];
@@ -27,21 +27,25 @@ void tud_cdc_rx_cb(uint8_t itf)
     (void) itf;
 }
 
+void cdc_debug_print(const char *str) {
+    memcpy(cdc_tx_buf, str, strlen(str));
+    uint32_t len = strlen(str);
+
+    cdc_tx_buf[strlen(str) + 1] = '\0';
+    len += 1;
+
+    tud_cdc_write(cdc_tx_buf, len);
+    tud_cdc_write_flush();
+}
+
 void cdc_process() {
+    //  only run is function every thousands time
     // connected and there are data available
     if ( tud_cdc_available() )
     {
         uint32_t recv = tud_cdc_read(cdc_rx_buf, sizeof(cdc_rx_buf));
         if (recv) {
-            for (uint32_t i = 0; i < recv; i++)
-            {
-                uint32_t protocol_data_to_be_sent = pc_protocol_process_incoming_byte(cdc_rx_buf[i], cdc_tx_buf);
-                if (protocol_data_to_be_sent)
-                {
-                    tud_cdc_write(cdc_tx_buf, protocol_data_to_be_sent);
-                    tud_cdc_write_flush();
-                }
-            }
+            app_handle_incoming_bytes(cdc_rx_buf, recv);
         }
 
     }

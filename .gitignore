@@ -799,3 +799,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 usb_dongle/build
+usb_dongle/.vscode/

@@ -5,5 +5,6 @@
 
 /* Returns number of bytes read (buf shall be atleast 64 bytes long) */
 void cdc_process();
+void cdc_debug_print(const char *str);
 
 #endif // !__CDC_H__

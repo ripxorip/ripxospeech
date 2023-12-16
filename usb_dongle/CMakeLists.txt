@@ -21,10 +21,7 @@ set(Sources
     cdc.c
     usb.c
     usb_descriptors.c
-    pc_protocol.c
-    controller.c
-    keyboard.c
-    keyboard_helper.c
+    app.c
     )
 
 add_executable(ripxospeech_controller_firmware ${Sources})
