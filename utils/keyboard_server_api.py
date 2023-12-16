@@ -2,8 +2,7 @@ import os
 import subprocess
 from utils.constants import *
 
-def get_hid_raw_filename():
-    usb_id = "1D6B:0104"
+def get_hid_raw_filename(usb_id):
     ret = subprocess.check_output(["ls", "/sys/class/hidraw"]).decode("utf-8").strip().splitlines()
     # Find which hidraw device is the USB device
     for r in ret:
@@ -16,12 +15,17 @@ def get_hid_raw_filename():
             if usb_id in target:
                 return r
     print('Error: Could not find the USB device with USB ID: {}'.format(usb_id))
-    exit(1)
+    return None
 
 def send_string_to_ripxovoice_hid(s):
-    os.system("echo -ne '{}' | sudo tee /dev/{}".format(s, get_hid_raw_filename()))
+    os.system("echo -ne '{}' | sudo tee /dev/{}".format(s, get_hid_raw_filename("1D6B:0104")))
+
+def usb_dongle_is_connected():
+    return get_hid_raw_filename("CAFE:4005") != None
 
 def send_command_to_keyboard_server(command):
+    if usb_dongle_is_connected():
+        print("USB dongle is connected")
     b = [KEYBOARD_SERVER_COMMANDS[command]]
     # Send the bytes to the device like
     # echo -ne '\x01\x00\x00\x00' | sudo dd of=/dev/hidraw5 bs=4 conv=notrunc
