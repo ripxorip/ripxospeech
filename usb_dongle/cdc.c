@@ -47,6 +47,5 @@ void cdc_process() {
         if (recv) {
             app_handle_incoming_bytes(cdc_rx_buf, recv);
         }
-
     }
 }

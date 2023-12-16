@@ -19,8 +19,12 @@ def kill():
     tmux_kill()
 
 def serve():
+    backend = 'hid'
+    if usb_dongle_is_connected():
+        backend = 'serial'
+    print("Starting keyboard server with backend: {}".format(backend))
     from keyboard_server.serve import KeyboardServer
-    server = KeyboardServer()
+    server = KeyboardServer(backend=backend)
     server.run()
 
 def start_dictation(args):
