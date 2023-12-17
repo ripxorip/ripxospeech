@@ -5,4 +5,4 @@ gst-launch-1.0 -v \
   opusenc frame-size=5 ! \
   rtpopuspay ! \
   queue max-size-buffers=200 max-size-time=20000000 max-size-bytes=2000 ! \
-  udpsink host=100.100.250.30 port=5137 buffer-size=200
+  udpsink host=100.97.216.58 port=5137 buffer-size=200
