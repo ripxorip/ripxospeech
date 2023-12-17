@@ -4,16 +4,16 @@
 #include "hid.h"
 #include "cdc.h"
 #include <stdio.h>
+#include "app.h"
 
 
 int main(void)
 {
     stdio_init_all();
     usb_init();
+    app_init();
     while (1)
     {
-        absolute_time_t before = get_absolute_time();
-
         /* Check for PC UART data */
         cdc_process();
         /* Proceed with HID & housekeeping */

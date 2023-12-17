@@ -7,10 +7,11 @@ import time
 from utils.dongle_utils import *
 from utils.constants import *
 import socket
+import serial
 
 class Serial_Backend:
     def __init__(self, read_cb):
-        self.serial_port = get_dongle_serial_port()
+        self.serial_port = serial.Serial(get_dongle_serial_port())
         self.read_cb = read_cb
 
     def write(self, report):
@@ -19,7 +20,7 @@ class Serial_Backend:
         hex_str = ''
         for i in data:
             hex_str += '\\x{:02x}'.format(i)
-        os.system("echo -ne '{}' | sudo tee {} > /dev/null".format(hex_str, self.serial_port))
+        self.serial_port.write(data)
 
     def read_thread(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

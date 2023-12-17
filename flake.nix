@@ -49,6 +49,7 @@
           python_pkgs.pygobject3
           python_pkgs.gst-python
           python_pkgs.numpy
+          python_pkgs.pyserial
           jacktrip
         ];
         nativeBuildInputs = with pkgs; [
