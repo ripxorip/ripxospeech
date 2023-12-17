@@ -12,6 +12,7 @@ int main(void)
     stdio_init_all();
     usb_init();
     app_init();
+    hid_init();
     while (1)
     {
         /* Check for PC UART data */
