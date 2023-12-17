@@ -12,6 +12,8 @@ SERVERS = ["lab", "engine_talon", "engine_win11_swe"]
 
 VOICE_BOX_CLIENT_PORT="5000"
 
+LOCAL_SERVER_PORT="1599"
+
 GST_SOUND_PORT="5137"
 
 LINUX_USER="ripxorip"

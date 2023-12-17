@@ -7,19 +7,27 @@ import os
 from utils.constants import *
 from utils.tmux import *
 from utils.keyboard_server_api import *
+from utils.dongle_utils import *
 
 def route(args):
-    tmux_run(
-        "./linux_gstreamer_client/stream.sh",
-        args.client
-    )
+    if args.client == "local":
+        os.system("./linux_gstreamer_client/stream.sh")
+    else:
+        tmux_run(
+            "./linux_gstreamer_client/stream.sh",
+            args.client
+        )
 
 def kill():
     tmux_kill()
 
 def serve():
+    backend = 'hid'
+    if usb_dongle_is_connected():
+        backend = 'serial'
+    print("Starting keyboard server with backend: {}".format(backend))
     from keyboard_server.serve import KeyboardServer
-    server = KeyboardServer()
+    server = KeyboardServer(backend=backend)
     server.run()
 
 def start_dictation(args):
@@ -39,9 +47,10 @@ def main():
     # Parse the arguments
     parser = argparse.ArgumentParser(description="Tool to use for routing my voice to different speech recognition servers")
     # Add the arguments
-    parser.add_argument("-a", "--action", help="The action to perform", choices=["serve", "kill", "route", "start_dictation", "stop_dictation"], required=True)
-    parser.add_argument("-c", "--client", help="The client to use", choices=["work", "station"])
+    parser.add_argument("-a", "--action", help="The action to perform", choices=["serve", "kill", "route", "start_dictation", "stop_dictation", "flash_dongle"], required=True)
+    parser.add_argument("-c", "--client", help="The client to use", choices=["work", "station", "local"])
     parser.add_argument("-e", "--engine", help="the speech engine to use", choices=["talon_dictation", "talon_command", "win11_swe", "gdocs"])
+    parser.add_argument("-f", "--firmware", help="Firmware to flash for the dongle")
     # Parse the arguments
     args = parser.parse_args()
 
@@ -55,6 +64,8 @@ def main():
         start_dictation(args)
     elif args.action == "stop_dictation":
         stop_dictation()
+    elif args.action == "flash_dongle":
+        flash_dongle(args.firmware)
 
 if __name__ == "__main__":
     main()
