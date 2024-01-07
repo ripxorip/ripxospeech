@@ -208,7 +208,7 @@ key_name_to_hid_report_code = {
     "KEY_RIGHT": 0x4f,
     "KEY_LEFT": 0x50,
     "KEY_DOWN": 0x51,
-    "KEY_UP": 0x5,
+    "KEY_UP": 0x52,
     "KEY_NUMLOCK": 0x53,
     "KEY_KPSLASH": 0x54,
     "KEY_KPASTERISK": 0x55,
