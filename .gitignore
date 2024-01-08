@@ -800,3 +800,5 @@ FodyWeavers.xsd
 
 usb_dongle/build
 usb_dongle/.vscode/
+
+ripxospeech_gtk/build/
