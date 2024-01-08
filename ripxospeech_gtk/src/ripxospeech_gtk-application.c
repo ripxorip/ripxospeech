@@ -1,6 +1,6 @@
 /* ripxospeech_gtk-application.c
  *
- * Copyright 2024 Unknown
+ * Copyright 2024 Philip K. Gisslow
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ ripxospeech_gtk_application_about_action (GSimpleAction *action,
                                           GVariant      *parameter,
                                           gpointer       user_data)
 {
-	static const char *developers[] = {"Unknown", NULL};
+	static const char *developers[] = {"Philip K. Gisslow", NULL};
 	RipxospeechGtkApplication *self = user_data;
 	GtkWindow *window = NULL;
 
@@ -83,10 +83,10 @@ ripxospeech_gtk_application_about_action (GSimpleAction *action,
 	adw_show_about_window (window,
 	                       "application-name", "ripxospeech_gtk",
 	                       "application-icon", "org.ripxorip.ripxospeech_gtk",
-	                       "developer-name", "Unknown",
+	                       "developer-name", "Philip K. Gisslow",
 	                       "version", "0.1.0",
 	                       "developers", developers,
-	                       "copyright", "© 2024 Unknown",
+	                       "copyright", "© 2024 Philip K. Gisslow",
 	                       NULL);
 }
 

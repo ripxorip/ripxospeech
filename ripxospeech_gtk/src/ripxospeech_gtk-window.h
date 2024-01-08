@@ -1,6 +1,6 @@
 /* ripxospeech_gtk-window.h
  *
- * Copyright 2024 Unknown
+ * Copyright 2024 Philip K. Gisslow
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
