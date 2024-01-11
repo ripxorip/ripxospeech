@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=ripxospeech_gtk
-Exec=ripxospeech_gtk
-Icon=org.ripxorip.ripxospeech_gtk
-Terminal=false
-Type=Application
-Categories=GTK;
-StartupNotify=true

@@ -1,10 +1,19 @@
-{ lib, stdenv, meson, gettext, gtk4, pkg-config, libadwaita, desktop-file-utils, ninja }:
+{ lib
+, python3Packages
+, gtk4
+, libadwaita
+, wrapGAppsHook4
+, gobject-introspection
+}:
+with python3Packages;
+buildPythonApplication {
+  pname = "Ripxospeech gtk4 GUI";
+  version = "1.0";
 
-stdenv.mkDerivation rec {
-  name = "ripxospeech_gtk";
+  nativeBuildInputs = [ gobject-introspection wrapGAppsHook4 libadwaita gtk4 ];
+
+  propagatedBuildInputs = [ pygobject3 pyserial libadwaita gtk4 ];
+
   src = ./.;
-
-  cmakeFlags = [ ];
-
-  buildInputs = [ meson gettext gtk4 pkg-config libadwaita desktop-file-utils ninja ];
 }
+

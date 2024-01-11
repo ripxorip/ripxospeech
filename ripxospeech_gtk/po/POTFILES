@@ -1,6 +1,0 @@
-data/org.ripxorip.ripxospeech_gtk.desktop.in
-data/org.ripxorip.ripxospeech_gtk.metainfo.xml.in
-data/org.ripxorip.ripxospeech_gtk.gschema.xml
-src/main.c
-src/ripxospeech_gtk-window.c
-src/ripxospeech_gtk-window.ui

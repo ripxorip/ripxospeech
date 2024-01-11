@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<cambalache-project version="0.13.1" target_tk="gtk-4.0">
+  <ui>
+	(2,None,"fortnox_time_reporter-window.ui","ripxospeech_gtk_window.ui",None,None,None,None,None,None,None)
+  </ui>
+  <ui_library>
+	(2,"Adw","1.0",None),
+	(2,"gtk","4.0",None)
+  </ui_library>
+  <object>
+	(2,1,"AdwApplicationWindow","RipxospeechWindow",None,None,None,None,None,None),
+	(2,2,"GtkBox",None,1,None,None,None,None,None),
+	(2,3,"GtkHeaderBar","header_bar",2,None,None,None,None,None),
+	(2,4,"GtkMenuButton",None,3,None,"end",None,None,None),
+	(2,5,"GtkBox",None,2,None,None,None,1,None),
+	(2,6,"GtkLabel","label",5,None,None,None,None,None),
+	(2,13,"GtkButton","startTimerButton",5,None,None,None,4,None),
+	(2,14,"GtkButton","finishreportbutton",5,None,None,None,5,None),
+	(2,19,"(menu)","primary_menu",None,None,None,None,None,None),
+	(2,20,"(section)",None,19,None,None,None,None,None),
+	(2,21,"(item)",None,20,None,None,None,None,None),
+	(2,22,"(item)",None,20,None,None,None,1,None),
+	(2,23,"(item)",None,20,None,None,None,2,None)
+  </object>
+  <object_property>
+	(2,1,"GtkWindow","default-height","300",None,None,None,None,None,None,None,None,None),
+	(2,1,"GtkWindow","default-width","600",None,None,None,None,None,None,None,None,None),
+	(2,1,"GtkWindow","title","Fortnox Time Reporter",None,None,None,None,None,None,None,None,None),
+	(2,2,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
+	(2,4,"GtkMenuButton","icon-name","open-menu-symbolic",None,None,None,None,None,None,None,None,None),
+	(2,4,"GtkMenuButton","menu-model","19",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkBox","spacing","12",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkWidget","margin-bottom","20",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkWidget","margin-end","80",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkWidget","margin-start","80",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkWidget","margin-top","20",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,6,"GtkLabel","label","Ripxospeech",None,None,None,None,None,None,None,None,None),
+	(2,13,"GtkButton","label","Start timer",None,None,None,None,None,None,None,None,None),
+	(2,13,"GtkWidget","name","start_button",None,None,None,None,None,None,None,None,None),
+	(2,14,"GtkButton","label","Finish report",None,None,None,None,None,None,None,None,None),
+	(2,21,"(item)","action","app.preferences",None,None,None,None,None,None,None,None,None),
+	(2,21,"(item)","label","_Preferences","yes",None,None,None,None,None,None,None,None),
+	(2,22,"(item)","action","win.show-help-overlay",None,None,None,None,None,None,None,None,None),
+	(2,22,"(item)","label","_Keyboard Shortcuts","yes",None,None,None,None,None,None,None,None),
+	(2,23,"(item)","action","app.about",None,None,None,None,None,None,None,None,None),
+	(2,23,"(item)","label","_About Fortnox_time_reporter","yes",None,None,None,None,None,None,None,None)
+  </object_property>
+  <object_data>
+	(2,6,"GtkWidget",1,1,None,None,None,None,None,None),
+	(2,6,"GtkWidget",2,2,None,1,None,None,None,None),
+	(2,13,"GtkWidget",1,1,None,None,None,None,None,None),
+	(2,13,"GtkWidget",2,2,None,1,None,None,None,None),
+	(2,14,"GtkWidget",1,1,None,None,None,None,None,None),
+	(2,14,"GtkWidget",2,2,None,1,None,None,None,None)
+  </object_data>
+  <object_data_arg>
+	(2,6,"GtkWidget",2,2,"name","title-2"),
+	(2,13,"GtkWidget",2,2,"name","start_button"),
+	(2,14,"GtkWidget",2,2,"name","suggested-action")
+  </object_data_arg>
+</cambalache-project>
