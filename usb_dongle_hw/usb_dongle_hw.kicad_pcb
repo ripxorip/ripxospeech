@@ -886,7 +886,7 @@
 
   (footprint "Resistor_SMD:R_0402_1005Metric" (layer "F.Cu")
     (tstamp 47ced7af-75a8-4459-b456-ff283088d308)
-    (at 73.025 104.874)
+    (at 73.025 105.922)
     (descr "Resistor SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
     (tags "resistor")
     (property "Sheetfile" "usb_dongle_hw.kicad_sch")
@@ -1520,7 +1520,7 @@
 
   (footprint "Capacitor_SMD:C_0402_1005Metric" (layer "F.Cu")
     (tstamp a7305f34-d143-42f9-8d1a-9dcb88825ca9)
-    (at 75.057 104.874)
+    (at 75.057 105.922)
     (descr "Capacitor SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: IPC-SM-782 page 76, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
     (tags "capacitor")
     (property "Sheetfile" "usb_dongle_hw.kicad_sch")
@@ -1605,7 +1605,7 @@
 
   (footprint "Resistor_SMD:R_0402_1005Metric" (layer "F.Cu")
     (tstamp b533cc3b-c08c-41c9-b2e2-254fc505d991)
-    (at 77.851 105.253 90)
+    (at 77.851 106.299 90)
     (descr "Resistor SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
     (tags "resistor")
     (property "Sheetfile" "usb_dongle_hw.kicad_sch")
@@ -1713,7 +1713,7 @@
 
   (footprint "Library:SON50P300X200X60-9N" (layer "F.Cu")
     (tstamp c632f498-086f-4c8b-9d15-70e42244381e)
-    (at 74.165 107.033)
+    (at 74.165 108.081)
     (descr "<b>USON 2x3x0.6-mm</b><br>")
     (property "Sheetfile" "usb_dongle_hw.kicad_sch")
     (property "Sheetname" "")
