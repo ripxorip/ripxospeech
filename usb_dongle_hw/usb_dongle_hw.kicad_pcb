@@ -2096,8 +2096,8 @@
   (gr_text "swc" (at 77.851 117.221) (layer "B.SilkS") (tstamp d55d8eaa-1f40-4543-bbb1-8c68a6293c5a)
     (effects (font (size 0.75 0.75) (thickness 0.15)) (justify left bottom mirror))
   )
-  (gr_text "Act" (at 81.4324 125.1204 -90) (layer "F.SilkS") (tstamp b0e7d06f-b792-4ba9-8649-c16caa87c884)
-    (effects (font (size 0.75 0.75) (thickness 0.15)) (justify left bottom))
+  (gr_text "rip^rip\nspeech" (at 80.4164 126.4412 270) (layer "F.SilkS") (tstamp b0e7d06f-b792-4ba9-8649-c16caa87c884)
+    (effects (font (size 0.75 0.75) (thickness 0.15)) (justify bottom))
   )
 
   (segment (start 80.22 103.108) (end 80.22 102.733) (width 0.18) (layer "F.Cu") (net 1) (tstamp 047b7cbb-a190-44b5-9ce7-8494e4c416ac))
