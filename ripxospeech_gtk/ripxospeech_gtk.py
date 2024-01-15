@@ -1,3 +1,4 @@
+import os
 import sys
 import gi
 import time
@@ -8,14 +9,21 @@ from gi.repository import Gtk, Adw, GLib
 class MyApp(Adw.Application):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        print(kwargs)
         self.connect('activate', self.on_activate)
         self.counter = 0
         self.timerActive = False
 
+    def attach_backend(self, backend):
+        self.backend = backend
+
     def on_activate(self, app):
         # Create a Builder
         builder = Gtk.Builder()
-        builder.add_from_file("ripxospeech_gtk_window.ui")
+        # Get the path of the current file
+        script_dir = os.path.dirname(__file__)
+        # Join the file name to the path
+        builder.add_from_file(os.path.join(script_dir, "ripxospeech_gtk_window.ui"))
 
         # Obtain the button widget and connect it to a function
         startTimerButton = builder.get_object("startTimerButton")
@@ -35,6 +43,8 @@ class MyApp(Adw.Application):
         self.timeLabel.set_text("00:00:00")
 
     def startTimerButtonClicked(self, button):
+        self.backend.start_audio_stream()
+        return
         if not self.timerActive:
             self.counter = 0
             self.timerActive = True
@@ -46,6 +56,8 @@ class MyApp(Adw.Application):
         return True
 
     def finishReportButtonClicked(self, button):
+        self.backend.stop_audio_stream()
+        return
         reportTime = self.counter
         self.stopTimer()
         # "filename" is defined elsewhere
@@ -64,6 +76,3 @@ class MyApp(Adw.Application):
 
     def resetButtonClicked(self, button):
         self.stopTimer()
-
-app = MyApp(application_id="com.example.GtkApplication")
-app.run(sys.argv)
