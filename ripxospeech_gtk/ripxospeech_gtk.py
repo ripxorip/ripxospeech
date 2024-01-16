@@ -11,11 +11,20 @@ class MyApp(Adw.Application):
         super().__init__(**kwargs)
         print(kwargs)
         self.connect('activate', self.on_activate)
+        self.connect('shutdown', self.on_shutdown)  # Connect to the shutdown signal
         self.counter = 0
         self.timerActive = False
 
     def attach_backend(self, backend):
         self.backend = backend
+        self.backend.set_gui_callback(self.app_callback)
+
+    def on_shutdown(self, app):
+        self.backend.teardown()
+
+    def app_callback(self, action):
+        print("dictation_callback")
+        print(action)
 
     def on_activate(self, app):
         # Create a Builder

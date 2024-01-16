@@ -46,7 +46,7 @@ class KeyPresser:
         self.backend.write(report)
 
 class KeyboardServer:
-    def __init__(self, backend='hid'):
+    def __init__(self, backend='hid', incoming_command_ckb = None):
         if backend == 'hid':
             self.backend = HID_Backend(self.handle_incoming_command)
         else:
@@ -54,6 +54,7 @@ class KeyboardServer:
 
         self.key_presser = KeyPresser(self.backend)
         self.ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
+        self.incoming_command_ckb = incoming_command_ckb
 
     def key_press(self, key):
         pressed_key = x11_key_code_to_name[key]
@@ -85,6 +86,8 @@ class KeyboardServer:
             print(f"Unknown event type: {event_type}")
 
     def handle_incoming_command(self, command):
+        if self.incoming_command_ckb:
+            self.incoming_command_ckb(command)
         util_handle_command(command, self.ip)
 
     def run(self):
