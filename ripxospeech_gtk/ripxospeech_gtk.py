@@ -4,7 +4,7 @@ import gi
 import time
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib
+from gi.repository import Gtk, Adw, GLib, Gdk
 
 class MyApp(Adw.Application):
     def __init__(self, **kwargs):
@@ -34,9 +34,17 @@ class MyApp(Adw.Application):
         # Join the file name to the path
         builder.add_from_file(os.path.join(script_dir, "ripxospeech_gtk_window.ui"))
 
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_path(os.path.join(script_dir, "ripxospeech_gtk.css"))
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(), 
+            css_provider, 
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
         # Obtain the button widget and connect it to a function
-        startTimerButton = builder.get_object("startTimerButton")
-        startTimerButton.connect("clicked", self.startTimerButtonClicked)
+        self.startTimerButton = builder.get_object("startTimerButton")
+        self.startTimerButton.connect("clicked", self.startTimerButtonClicked)
 
         finishReportButton = builder.get_object("finishreportbutton")
         finishReportButton.connect("clicked", self.finishReportButtonClicked)
@@ -66,6 +74,11 @@ class MyApp(Adw.Application):
 
     def finishReportButtonClicked(self, button):
         self.backend.stop_audio_stream()
+        style_context = self.startTimerButton.get_style_context()
+        if style_context.has_class('button-color'):
+            style_context.remove_class('button-color')
+        else:
+            style_context.add_class('button-color')
         return
         reportTime = self.counter
         self.stopTimer()
