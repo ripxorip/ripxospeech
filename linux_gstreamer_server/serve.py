@@ -20,7 +20,8 @@ def main():
         data, address = sock.recvfrom(4096)
         command = data.decode()
         if command == "start":
-            stream_process = subprocess.Popen(["linux_gstreamer_server/serve.sh"], preexec_fn=os.setsid)
+            if stream_process is None:
+                stream_process = subprocess.Popen(["linux_gstreamer_server/serve.sh"], preexec_fn=os.setsid)
         elif command == "stop":
             if stream_process is not None:
                 os.killpg(os.getpgid(stream_process.pid), signal.SIGTERM)
