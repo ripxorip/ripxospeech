@@ -43,10 +43,10 @@ class MyApp(Adw.Application):
         )
 
         # Obtain the button widget and connect it to a function
-        self.startTimerButton = builder.get_object("startTimerButton")
+        self.startTimerButton = builder.get_object("talonCommand")
         self.startTimerButton.connect("clicked", self.startTimerButtonClicked)
 
-        finishReportButton = builder.get_object("finishreportbutton")
+        finishReportButton = builder.get_object("talonSentence")
         finishReportButton.connect("clicked", self.finishReportButtonClicked)
 
         # Obtain and show the main window

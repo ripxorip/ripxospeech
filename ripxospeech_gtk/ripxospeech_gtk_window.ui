@@ -7,7 +7,7 @@
   <requires lib="gio" version="2.0"/>
   <requires lib="libadwaita" version="1.0"/>
   <object class="AdwApplicationWindow" id="RipxospeechWindow">
-    <property name="default-height">300</property>
+    <property name="default-height">400</property>
     <property name="default-width">600</property>
     <property name="title">Ripxospeech</property>
     <child>
@@ -34,27 +34,78 @@
             <property name="vexpand">True</property>
             <child>
               <object class="GtkLabel" id="label">
-                <property name="label">Ripxospeech</property>
+                <property name="label">Talon</property>
                 <style>
-                  <class name="title-2"/>
+                  <class name="title-4"/>
                 </style>
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="startTimerButton">
-                <property name="label">Start timer</property>
-                <property name="name">start_button</property>
+              <object class="GtkButton" id="talonCommand">
+                <property name="label">Run Talon Command</property>
                 <style>
                   <class name="start_button"/>
                 </style>
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="finishreportbutton">
-                <property name="label">Finish report</property>
+              <object class="GtkButton" id="talonSentence">
+                <property name="label">Run Talon Sentence</property>
+                <property name="name">talonSentence</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Windows</property>
                 <style>
-                  <class name="suggested-action"/>
+                  <class name="title-4"/>
                 </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Lang: EN</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="winRun">
+                <property name="label">Run</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="homogeneous">True</property>
+                <property name="spacing">12</property>
+                <property name="vexpand-set">True</property>
+                <child>
+                  <object class="GtkButton" id="winSV">
+                    <property name="label">SV</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="winEN">
+                    <property name="label">EN</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Settings</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Status: Idle</property>
               </object>
             </child>
           </object>
