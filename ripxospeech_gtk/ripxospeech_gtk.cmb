@@ -31,7 +31,10 @@
 	(2,31,"GtkSeparator",None,5,None,None,None,8,None),
 	(2,32,"GtkLabel",None,5,None,None,None,11,None),
 	(2,33,"GtkLabel",None,5,None,None,None,5,None),
-	(2,34,"GtkLabel",None,5,None,None,None,9,None)
+	(2,34,"GtkLabel",None,5,None,None,None,9,None),
+	(2,35,"GtkBox",None,5,None,None,None,10,None),
+	(2,36,"GtkSwitch",None,35,None,None,None,2,None),
+	(2,38,"GtkLabel",None,35,None,None,None,1,None)
   </object>
   <object_property>
 	(2,1,"GtkWindow","default-height","400",None,None,None,None,None,None,None,None,None),
@@ -66,7 +69,13 @@
 	(2,30,"GtkButton","label","EN",None,None,None,None,None,None,None,None,None),
 	(2,32,"GtkLabel","label","Status: Idle",None,None,None,None,None,None,None,None,None),
 	(2,33,"GtkLabel","label","Lang: EN",None,None,None,None,None,None,None,None,None),
-	(2,34,"GtkLabel","label","Settings",None,None,None,None,None,None,None,None,None)
+	(2,34,"GtkLabel","label","Settings",None,None,None,None,None,None,None,None,None),
+	(2,35,"GtkBox","spacing","20",None,None,None,None,None,None,None,None,None),
+	(2,35,"GtkWidget","halign","baseline",None,None,None,None,None,None,None,None,None),
+	(2,36,"GtkWidget","halign","end",None,None,None,None,None,None,None,None,None),
+	(2,36,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,38,"GtkLabel","label","Autostop",None,None,None,None,None,None,None,None,None),
+	(2,38,"GtkWidget","halign","start",None,None,None,None,None,None,None,None,None)
   </object_property>
   <object_data>
 	(2,6,"GtkWidget",1,1,None,None,None,None,None,None),
