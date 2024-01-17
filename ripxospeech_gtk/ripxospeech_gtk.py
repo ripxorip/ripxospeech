@@ -26,6 +26,21 @@ class MyApp(Adw.Application):
         for l in state['labels']:
             self.labels[l].set_text(state['labels'][l])
 
+        for b in state['buttons']:
+            style_context = self.buttons[b].get_style_context()
+
+            if b != 'winSV' and b != 'winEN':
+                if style_context.has_class('button-passive'):
+                    style_context.remove_class('button-passive')
+                if style_context.has_class('button-active'):
+                    style_context.remove_class('button-active')
+                if state['buttons'][b]['active']:
+                    self.buttons[b].set_label("Running " + state['buttons'][b]['text'] + "...")
+                    style_context.add_class('button-active')
+                else:
+                    self.buttons[b].set_label(state['buttons'][b]['text'])
+                    style_context.add_class('button-passive')
+
     def on_activate(self, app):
         # Create a Builder
         builder = Gtk.Builder()

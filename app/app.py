@@ -21,14 +21,17 @@ class App:
             'buttons': {
                 'talonCommand': {
                     'label': 'Talon Command',
+                    'text': 'Talon Command',
                     'active': False,
                 },
                 'talonSentence': {
                     'label': 'Talon Sentence',
+                    'text': 'Talon Sentence',
                     'active': False,
                 },
                 'winRun': {
                     'label': 'Win Run',
+                    'text': 'Win',
                     'active': False,
                 },
                 'winSV': {
@@ -119,5 +122,5 @@ class App:
             self.gui_callback(self.gui_state)
             return
 
-        print(button)
+        self.gui_state['buttons'][button]['active'] = not self.gui_state['buttons'][button]['active']
         self.gui_callback(self.gui_state)
