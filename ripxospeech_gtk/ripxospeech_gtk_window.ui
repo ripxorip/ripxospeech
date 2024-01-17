@@ -97,6 +97,22 @@
             </child>
             <child>
               <object class="GtkLabel">
+                <property name="label">Control</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="stopButton">
+                <property name="label">Stop</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkLabel">
                 <property name="label">Settings</property>
                 <style>
                   <class name="title-4"/>

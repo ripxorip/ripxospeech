@@ -28,14 +28,17 @@
 	(2,28,"GtkBox",None,5,None,None,None,7,None),
 	(2,29,"GtkButton","winSV",28,None,None,None,-1,None),
 	(2,30,"GtkButton","winEN",28,None,None,None,-1,None),
-	(2,31,"GtkSeparator",None,5,None,None,None,8,None),
-	(2,32,"GtkLabel","statusText",5,None,None,None,12,None),
+	(2,31,"GtkSeparator",None,5,None,None,None,11,None),
+	(2,32,"GtkLabel","statusText",5,None,None,None,15,None),
 	(2,33,"GtkLabel","winLang",5,None,None,None,5,None),
-	(2,34,"GtkLabel",None,5,None,None,None,9,None),
-	(2,35,"GtkBox",None,5,None,None,None,10,None),
+	(2,34,"GtkLabel",None,5,None,None,None,12,None),
+	(2,35,"GtkBox",None,5,None,None,None,13,None),
 	(2,36,"GtkSwitch","autoStopSwitch",35,None,None,None,2,None),
 	(2,38,"GtkLabel",None,35,None,None,None,1,None),
-	(2,39,"GtkSeparator",None,5,None,None,None,11,None)
+	(2,39,"GtkSeparator",None,5,None,None,None,14,None),
+	(2,40,"GtkButton","stopButton",5,None,None,None,10,None),
+	(2,41,"GtkSeparator",None,5,None,None,None,8,None),
+	(2,42,"GtkLabel",None,5,None,None,None,9,None)
   </object>
   <object_property>
 	(2,1,"GtkWindow","default-height","400",None,None,None,None,None,None,None,None,None),
@@ -76,7 +79,9 @@
 	(2,36,"GtkWidget","halign","end",None,None,None,None,None,None,None,None,None),
 	(2,36,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,38,"GtkLabel","label","Autostop",None,None,None,None,None,None,None,None,None),
-	(2,38,"GtkWidget","halign","start",None,None,None,None,None,None,None,None,None)
+	(2,38,"GtkWidget","halign","start",None,None,None,None,None,None,None,None,None),
+	(2,40,"GtkButton","label","Stop",None,None,None,None,None,None,None,None,None),
+	(2,42,"GtkLabel","label","Control",None,None,None,None,None,None,None,None,None)
   </object_property>
   <object_data>
 	(2,6,"GtkWidget",1,1,None,None,None,None,None,None),
@@ -86,12 +91,15 @@
 	(2,25,"GtkWidget",1,1,None,None,None,None,None,None),
 	(2,25,"GtkWidget",2,2,None,1,None,None,None,None),
 	(2,34,"GtkWidget",1,1,None,None,None,None,None,None),
-	(2,34,"GtkWidget",2,2,None,1,None,None,None,None)
+	(2,34,"GtkWidget",2,2,None,1,None,None,None,None),
+	(2,42,"GtkWidget",1,1,None,None,None,None,None,None),
+	(2,42,"GtkWidget",2,2,None,1,None,None,None,None)
   </object_data>
   <object_data_arg>
 	(2,6,"GtkWidget",2,2,"name","title-4"),
 	(2,13,"GtkWidget",2,2,"name","start_button"),
 	(2,25,"GtkWidget",2,2,"name","title-4"),
-	(2,34,"GtkWidget",2,2,"name","title-4")
+	(2,34,"GtkWidget",2,2,"name","title-4"),
+	(2,42,"GtkWidget",2,2,"name","title-4")
   </object_data_arg>
 </cambalache-project>

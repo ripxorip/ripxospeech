@@ -29,7 +29,7 @@ class MyApp(Adw.Application):
         for b in state['buttons']:
             style_context = self.buttons[b].get_style_context()
 
-            if b != 'winSV' and b != 'winEN':
+            if b != 'winSV' and b != 'winEN' and b != 'stop':
                 if style_context.has_class('button-passive'):
                     style_context.remove_class('button-passive')
                 if style_context.has_class('button-active'):
@@ -62,7 +62,8 @@ class MyApp(Adw.Application):
             'talonSentence': builder.get_object('talonSentence'),
             'winRun': builder.get_object('winRun'),
             'winSV': builder.get_object('winSV'),
-            'winEN': builder.get_object('winEN')
+            'winEN': builder.get_object('winEN'),
+            'stop': builder.get_object('stopButton')
         }
 
         self.labels = {
@@ -77,6 +78,9 @@ class MyApp(Adw.Application):
         self.win = builder.get_object("RipxospeechWindow")
         self.win.set_application(self)  # Application will close once it no longer has active windows attached to it
         self.win.present()
+
+        style_context = self.buttons['stop'].get_style_context()
+        style_context.add_class('button-stop')
 
         # Just to get the initial state correct
         self.backend.gui_button_clicked(None)

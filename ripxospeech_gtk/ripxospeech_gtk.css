@@ -17,3 +17,11 @@
 .button-active:hover {
     background-color: #26A269;
 }
+
+.button-stop {
+    /* background-color: #ED333B; */
+}
+
+.button-stop:hover {
+    /* background-color: #F66151; */
+}

@@ -143,3 +143,5 @@ class App:
             self.clicked_button_incoming_command("start_talon_dictation")
         elif button == 'winRun':
             self.clicked_button_incoming_command("start_win11_swe") 
+        elif button == 'stop':
+            self.clicked_button_incoming_command("stop")
