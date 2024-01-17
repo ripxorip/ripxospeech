@@ -3,6 +3,7 @@ import subprocess
 import os
 import signal
 import socket
+import time
 
 from utils.dongle_utils import *
 from utils.keyboard_server_api import *
@@ -56,6 +57,35 @@ class App:
         self.dongle_path = get_dongle_serial_port()
         self.update_gui_state()
 
+    def get_win_lang(self):
+        req_str = "get-current-lang"
+        # Send the string to 127.0.0.1 5000 and receive the response
+        bytes = req_str.encode('utf-8')
+        # Send the specified bytes to the specified server over UDP using socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(bytes, (IP_ADDR["engine_win11_swe"], 5000))
+        # Receive the response
+        sock.settimeout(1)
+        data,_ = sock.recvfrom(1024)
+        lang = data.decode('utf-8')
+        print(lang)
+        if lang == "sv-SE":
+            lang = "SV"
+        elif lang == "en-US":
+            lang = "EN"
+        return lang
+
+    def toggle_win_lang(self):
+        req_str = "toggle-lang"
+        bytes = req_str.encode('utf-8')
+        # Send the string to
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(bytes, (IP_ADDR["engine_win11_swe"], 5000))
+        time.sleep(0.5)
+        self.update_gui_state()
+        print(self.winLang)
+        self.gui_callback(self.gui_state)
+
     def keyboard_server(self):
         backend = 'hid'
         if usb_dongle_is_connected():
@@ -72,6 +102,7 @@ class App:
         self.gui_callback = callback
 
     def update_gui_state(self):
+        self.winLang = self.get_win_lang()
         statusText = "Active"
         self.gui_state['buttons']['talonCommand']['active'] = False
         self.gui_state['buttons']['talonSentence']['active'] = False
@@ -88,6 +119,7 @@ class App:
         elif self.running_engine == "start_gdocs":
             pass
         self.gui_state['labels']['statusText'] = "Status: " + statusText + ", Dongle: " + self.dongle_path
+        self.gui_state['labels']['winLang'] = "Lang: " + self.winLang
 
     # Called when a dictation command is trigged using a manual key press like F8-F12 on Gnome
     def dictation_command_cbk(self, command):
@@ -145,3 +177,9 @@ class App:
             self.clicked_button_incoming_command("start_win11_swe") 
         elif button == 'stop':
             self.clicked_button_incoming_command("stop")
+        elif button == 'winSV':
+            if self.winLang == "EN":
+                self.toggle_win_lang()
+        elif button == 'winEN':
+            if self.winLang == "SV":
+                self.toggle_win_lang()
