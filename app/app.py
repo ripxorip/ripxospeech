@@ -17,6 +17,8 @@ class App:
         self.keyboard_server_thread = threading.Thread(target=self.keyboard_server)
         self.keyboard_server_thread.start()
 
+        self.running_engine = "stop"
+
         self.gui_state = {
             'buttons': {
                 'talonCommand': {
@@ -61,21 +63,31 @@ class App:
         self.server.run()
 
     def clicked_button_incoming_command(self, command):
-        b = [KEYBOARD_SERVER_COMMANDS[command]]
-        # Send the bytes to the device like
-        # echo -ne '\x01\x00\x00\x00' | sudo dd of=/dev/hidraw5 bs=4 conv=notrunc
-        # Convert the bytes to a string like \x01\x00\x00\x00
-        # Make sure that the size of the bytes is a multiple of 4
-        # Otherwise pad with 0s
-        while len(b) % 4 != 0:
-            b.append(0)
-        s = ""
-        for i in b:
-            s += "\\x{:02x}".format(i)
-        self.server.handle_incoming_command(s)
+        self.server.handle_incoming_command(KEYBOARD_SERVER_COMMANDS[command])
 
     def set_gui_callback(self, callback):
         self.gui_callback = callback
+
+    def update_gui_state(self):
+        statusText = ""
+        self.gui_state['buttons']['talonCommand']['active'] = False
+        self.gui_state['buttons']['talonSentence']['active'] = False
+        self.gui_state['buttons']['winRun']['active'] = False
+
+        if self.running_engine == "stop":
+            statusText = "Idle"
+        elif self.running_engine == "start_talon_command":
+            statusText = "Running Talon Command"
+            self.gui_state['buttons']['talonCommand']['active'] = True
+        elif self.running_engine == "start_talon_dictation":
+            statusText = "Running Talon Sentence"
+            self.gui_state['buttons']['talonSentence']['active'] = True
+        elif self.running_engine == "start_win11_swe":
+            statusText = "Running Windows"
+            self.gui_state['buttons']['winRun']['active'] = True
+        elif self.running_engine == "start_gdocs":
+            statusText = "Running GDocs"
+        self.gui_state['labels']['statusText'] = "Status: " + statusText
 
     # Called when a dictation command is trigged using a manual key press like F8-F12 on Gnome
     def dictation_command_cbk(self, command):
@@ -84,10 +96,13 @@ class App:
             if value == command:
                 cmd = key
         if cmd != "":
+            self.running_engine = cmd
             if cmd == "stop":
                 self.stop_audio_stream()
             else:
                 self.start_audio_stream()
+            self.update_gui_state()
+            self.gui_callback(self.gui_state)
 
     def send_command_to_sound_host(self, command):
         bytes = command.encode('utf-8')
@@ -122,5 +137,9 @@ class App:
             self.gui_callback(self.gui_state)
             return
 
-        self.gui_state['buttons'][button]['active'] = not self.gui_state['buttons'][button]['active']
-        self.gui_callback(self.gui_state)
+        if button == 'talonCommand':
+            self.clicked_button_incoming_command("start_talon_command")
+        elif button == 'talonSentence':
+            self.clicked_button_incoming_command("start_talon_dictation")
+        elif button == 'winRun':
+            self.clicked_button_incoming_command("start_win11_swe") 
