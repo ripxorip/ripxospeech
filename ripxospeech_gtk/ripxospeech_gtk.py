@@ -12,8 +12,6 @@ class MyApp(Adw.Application):
         print(kwargs)
         self.connect('activate', self.on_activate)
         self.connect('shutdown', self.on_shutdown)  # Connect to the shutdown signal
-        self.counter = 0
-        self.timerActive = False
 
     def attach_backend(self, backend):
         self.backend = backend
@@ -22,9 +20,11 @@ class MyApp(Adw.Application):
     def on_shutdown(self, app):
         self.backend.teardown()
 
-    def app_callback(self, action):
-        print("dictation_callback")
-        print(action)
+    def app_callback(self, state):
+        # Shall change the state of the GUI and nothin else
+        print(state)
+        for l in state['labels']:
+            self.labels[l].set_text(state['labels'][l])
 
     def on_activate(self, app):
         # Create a Builder
@@ -42,59 +42,39 @@ class MyApp(Adw.Application):
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
 
-        # Obtain the button widget and connect it to a function
-        self.startTimerButton = builder.get_object("talonCommand")
-        self.startTimerButton.connect("clicked", self.startTimerButtonClicked)
+        self.buttons = {
+            'talonCommand': builder.get_object('talonCommand'),
+            'talonSentence': builder.get_object('talonSentence'),
+            'winRun': builder.get_object('winRun'),
+            'winSV': builder.get_object('winSV'),
+            'winEN': builder.get_object('winEN')
+        }
 
-        finishReportButton = builder.get_object("talonSentence")
-        finishReportButton.connect("clicked", self.finishReportButtonClicked)
+        self.labels = {
+            'winLang': builder.get_object('winLang'),
+            'statusText': builder.get_object('statusText'),
+        }
+
+        for button in self.buttons.values():
+            button.connect('clicked', self.on_button_clicked)
 
         # Obtain and show the main window
         self.win = builder.get_object("RipxospeechWindow")
         self.win.set_application(self)  # Application will close once it no longer has active windows attached to it
         self.win.present()
 
-    def stopTimer(self):
-        self.timerActive = False
-        GLib.source_remove(self.timer_id)
-        self.timeLabel.set_text("00:00:00")
+        # Just to get the initial state correct
+        self.backend.gui_button_clicked(None)
 
-    def startTimerButtonClicked(self, button):
-        self.backend.start_audio_stream()
-        return
-        if not self.timerActive:
-            self.counter = 0
-            self.timerActive = True
-            self.timer_id = GLib.timeout_add_seconds(1, self.updateCounter)
-
-    def updateCounter(self):
-        self.counter += 1
-        self.timeLabel.set_text(time.strftime("%H:%M:%S", time.gmtime(self.counter)))  # Update the time label
-        return True
-
-    def finishReportButtonClicked(self, button):
+    def on_button_clicked(self, button):
+        # Call backend gui_button_clicked with the object id
+        obj_name = next(name for name, btn in self.buttons.items() if btn == button)
+        self.backend.gui_button_clicked(obj_name)
+        """
         self.backend.stop_audio_stream()
-        style_context = self.startTimerButton.get_style_context()
+        style_context = self.talonCommandButton.get_style_context()
         if style_context.has_class('button-color'):
             style_context.remove_class('button-color')
         else:
             style_context.add_class('button-color')
-        return
-        reportTime = self.counter
-        self.stopTimer()
-        # "filename" is defined elsewhere
-        dialog = Gtk.MessageDialog(text=f"Error reading something",
-                                buttons=Gtk.ButtonsType.CLOSE)
-
-        # "parent_window" is defined elsewhere
-        dialog.set_transient_for(self.win)
-        dialog.set_destroy_with_parent(True)
-        dialog.set_modal(True)
-        # Destroy the dialog when the user responds to it
-        dialog.connect("response", lambda d: d.destroy())
-
-    def reportButtonClicked(self, button):
-        pass
-
-    def resetButtonClicked(self, button):
-        self.stopTimer()
+        """
