@@ -72,7 +72,7 @@ class App:
         self.gui_callback = callback
 
     def update_gui_state(self):
-        statusText = ""
+        statusText = "Active"
         self.gui_state['buttons']['talonCommand']['active'] = False
         self.gui_state['buttons']['talonSentence']['active'] = False
         self.gui_state['buttons']['winRun']['active'] = False
@@ -80,16 +80,13 @@ class App:
         if self.running_engine == "stop":
             statusText = "Idle"
         elif self.running_engine == "start_talon_command":
-            statusText = "Running Talon Command"
             self.gui_state['buttons']['talonCommand']['active'] = True
         elif self.running_engine == "start_talon_dictation":
-            statusText = "Running Talon Sentence"
             self.gui_state['buttons']['talonSentence']['active'] = True
         elif self.running_engine == "start_win11_swe":
-            statusText = "Running Windows"
             self.gui_state['buttons']['winRun']['active'] = True
         elif self.running_engine == "start_gdocs":
-            statusText = "Running GDocs"
+            pass
         self.gui_state['labels']['statusText'] = "Status: " + statusText + ", Dongle: " + self.dongle_path
 
     # Called when a dictation command is trigged using a manual key press like F8-F12 on Gnome
