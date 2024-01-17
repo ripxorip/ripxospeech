@@ -53,6 +53,9 @@ class App:
             },
         }
 
+        self.dongle_path = get_dongle_serial_port()
+        self.update_gui_state()
+
     def keyboard_server(self):
         backend = 'hid'
         if usb_dongle_is_connected():
@@ -87,7 +90,7 @@ class App:
             self.gui_state['buttons']['winRun']['active'] = True
         elif self.running_engine == "start_gdocs":
             statusText = "Running GDocs"
-        self.gui_state['labels']['statusText'] = "Status: " + statusText
+        self.gui_state['labels']['statusText'] = "Status: " + statusText + ", Dongle: " + self.dongle_path
 
     # Called when a dictation command is trigged using a manual key press like F8-F12 on Gnome
     def dictation_command_cbk(self, command):
