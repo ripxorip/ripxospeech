@@ -5,6 +5,10 @@ import signal
 import socket
 import time
 
+from PIL import Image
+from io import BytesIO
+import pytesseract
+
 from utils.dongle_utils import *
 from utils.keyboard_server_api import *
 from utils.constants import *
@@ -55,6 +59,7 @@ class App:
         }
 
         self.dongle_path = get_dongle_serial_port()
+        self.get_win_lang()
         self.update_gui_state()
 
     def get_win_lang(self):
@@ -67,13 +72,25 @@ class App:
         # Receive the response
         sock.settimeout(1)
         data,_ = sock.recvfrom(1024)
-        lang = data.decode('utf-8')
-        print(lang)
-        if lang == "sv-SE":
+
+        # Convert the data to an image
+        image = Image.open(BytesIO(data))
+
+        # Use pytesseract to extract text from the image
+        lang = pytesseract.image_to_string(image)
+        print('Detected language: ', lang)
+        lang = lang.strip()
+
+        write_image = False
+        # Writh the data as a jpg file
+        if write_image:
+            with open('lang.jpg', 'wb') as f:
+                f.write(data)
+        if lang == "Swe":
             lang = "SV"
-        elif lang == "en-US":
+        elif lang == "ENG":
             lang = "EN"
-        return lang
+        self.winLang = lang
 
     def toggle_win_lang(self):
         req_str = "toggle-lang"
@@ -82,8 +99,8 @@ class App:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.sendto(bytes, (IP_ADDR["engine_win11_swe"], 5000))
         time.sleep(0.5)
+        self.get_win_lang()
         self.update_gui_state()
-        print(self.winLang)
         self.gui_callback(self.gui_state)
 
     def keyboard_server(self):
@@ -102,7 +119,6 @@ class App:
         self.gui_callback = callback
 
     def update_gui_state(self):
-        self.winLang = self.get_win_lang()
         statusText = "Active"
         self.gui_state['buttons']['talonCommand']['active'] = False
         self.gui_state['buttons']['talonSentence']['active'] = False

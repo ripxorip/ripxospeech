@@ -12,7 +12,7 @@ buildPythonApplication {
 
   nativeBuildInputs = [ gobject-introspection wrapGAppsHook4 libadwaita gtk4 ];
 
-  propagatedBuildInputs = [ pygobject3 pyserial libadwaita gtk4 ];
+  propagatedBuildInputs = [ pygobject3 pyserial libadwaita gtk4 pytesseract ];
 
   src = ./.;
 }
