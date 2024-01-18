@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using WindowsInput;
 using WindowsInput.Native;
+using System.Drawing.Imaging;
 
 namespace win11_keysender
 {
@@ -203,6 +204,41 @@ namespace win11_keysender
                 stop();
             }
 
+            else if (inputText == "toggle-lang")
+            {
+                var simulator = new InputSimulator();
+                simulator.Keyboard.ModifiedKeyStroke(VirtualKeyCode.LWIN, VirtualKeyCode.SPACE);
+            }
+
+            else if (inputText == "get-current-lang")
+            {
+                // Take a screenshot of a specific area
+                int startX = 1700;
+                int startY = 1035;
+                int width = 55;
+                int height = 45;
+                Bitmap bmpScreenCapture = new Bitmap(width, height);
+                Graphics g = Graphics.FromImage(bmpScreenCapture);
+                g.CopyFromScreen(startX, startY, 0, 0, new Size(width, height), CopyPixelOperation.SourceCopy);
+
+                // Convert to grayscale
+                for (int y = 0; y < bmpScreenCapture.Height; y++)
+                {
+                    for (int x = 0; x < bmpScreenCapture.Width; x++)
+                    {
+                        Color c = bmpScreenCapture.GetPixel(x, y);
+                        int gray = (int)(0.3 * c.R + 0.59 * c.G + 0.11 * c.B);
+                        bmpScreenCapture.SetPixel(x, y, Color.FromArgb(gray, gray, gray));
+                    }
+                }
+
+                MemoryStream ms = new MemoryStream();
+                bmpScreenCapture.Save(ms, ImageFormat.Jpeg);
+                byte[] bmpBytes = ms.ToArray();
+
+                // Send back a response.
+                udpClient.Send(bmpBytes, bmpBytes.Length, ip);
+            }
             udpClient.BeginReceive(new AsyncCallback(ReceiveCallback), null);
         }
 
