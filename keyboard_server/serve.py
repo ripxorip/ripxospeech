@@ -104,7 +104,11 @@ class KeyboardServer:
         # event loop
         while True:
             data, addr = sock.recvfrom(1024)
-            message = data.decode()
+            try:
+                message = data.decode()
+            except Exception as e:
+                print(f"Invalid message: {data}")
+                continue
             parts = message.split(",")
             if len(parts) != 2:
                 print(f"Invalid message: {message}")
