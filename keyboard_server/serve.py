@@ -7,6 +7,7 @@ import os
 from keyboard_server.keycodes import *
 from keyboard_server.hid_backend import *
 from keyboard_server.serial_backend import *
+from keyboard_server.virtual_backend import *
 from keyboard_server.utils import *
 from utils.constants import *
 
@@ -47,8 +48,12 @@ class KeyPresser:
 
 class KeyboardServer:
     def __init__(self, backend='hid', incoming_command_ckb = None):
+        self.virtual_backend = False
         if backend == 'hid':
             self.backend = HID_Backend(self.handle_incoming_command)
+        elif backend == 'virtual':
+            self.backend = Virtual_Backend(self.handle_incoming_command)
+            self.virtual_backend = True
         else:
             self.backend = Serial_Backend(self.handle_incoming_command)
 
@@ -59,6 +64,9 @@ class KeyboardServer:
     def key_press(self, key):
         pressed_key = x11_key_code_to_name[key]
         colemak_key = qwerty_to_colemak_dh(pressed_key)
+        if self.virtual_backend:
+            self.backend.key_press(colemak_key)
+            return
         hid_key = key_name_to_hid_report_code[colemak_key]
         print('Press Key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
         self.key_presser.press_key(hid_key)
@@ -68,6 +76,9 @@ class KeyboardServer:
     def key_release(self, key):
         pressed_key = x11_key_code_to_name[key]
         colemak_key = qwerty_to_colemak_dh(pressed_key)
+        if self.virtual_backend:
+            self.backend.key_release(colemak_key)
+            return
         hid_key = key_name_to_hid_report_code[colemak_key]
         print('Release key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
         self.key_presser.release_key(hid_key)

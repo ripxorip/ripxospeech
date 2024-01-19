@@ -30,7 +30,6 @@ def usb_dongle_is_connected():
     return get_hid_raw_filename("CAFE:4005") != None
 
 def send_command_to_keyboard_server(command):
-    has_dongle = usb_dongle_is_connected()
     b = [KEYBOARD_SERVER_COMMANDS[command]]
     # Send the bytes to the device like
     # echo -ne '\x01\x00\x00\x00' | sudo dd of=/dev/hidraw5 bs=4 conv=notrunc
@@ -42,7 +41,4 @@ def send_command_to_keyboard_server(command):
     s = ""
     for i in b:
         s += "\\x{:02x}".format(i)
-    if has_dongle:
-        send_string_to_local_server(s)
-    else:
-        send_string_to_ripxovoice_hid(s)
+    send_string_to_local_server(s)

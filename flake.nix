@@ -26,7 +26,8 @@
       };
 
       python_pkgs = pkgs.python3Packages;
-      ripxospeech_gtk = pkgs.callPackage ./ripxospeech_gtk {};
+      virtual_keyboard = pkgs.callPackage ./virtual_keyboard {};
+      ripxospeech_gtk = pkgs.callPackage ./ripxospeech_gtk {virtual_keyboard = virtual_keyboard;};
 
     in
     {
@@ -62,6 +63,7 @@
       };
 
       packages.ripxospeech_gtk = ripxospeech_gtk;
+      packages.virtual_keyboard = virtual_keyboard;
 
       packages.default = pkgs.python3Packages.buildPythonApplication {
         pname = "ripxospeech";

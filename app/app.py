@@ -59,6 +59,8 @@ class App:
         }
 
         self.dongle_path = get_dongle_serial_port()
+        if self.dongle_path is None:
+            self.dongle_path = "Virtual"
         self.get_win_lang()
         self.update_gui_state()
 
@@ -104,10 +106,13 @@ class App:
         self.gui_callback(self.gui_state)
 
     def keyboard_server(self):
-        backend = 'hid'
+        backend = 'virtual'
         if usb_dongle_is_connected():
             backend = 'serial'
         print("Starting keyboard server with backend: {}".format(backend))
+        if backend == 'virtual':
+            print('Starting virtual keyboard server')
+            self.virtual_keyboard_server = subprocess.Popen(["virtual_keyboard"], preexec_fn=os.setsid)
         from keyboard_server.serve import KeyboardServer
         self.server = KeyboardServer(backend=backend, incoming_command_ckb=self.dictation_command_cbk)
         self.server.run()
