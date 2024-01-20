@@ -112,7 +112,7 @@ class App:
         print("Starting keyboard server with backend: {}".format(backend))
         if backend == 'virtual':
             print('Starting virtual keyboard server')
-            self.virtual_keyboard_server = subprocess.Popen(["virtual_keyboard"], preexec_fn=os.setsid)
+            self.virtual_keyboard_server = subprocess.Popen(["sudo", "virtual_keyboard"], preexec_fn=os.setsid)
         from keyboard_server.serve import KeyboardServer
         self.server = KeyboardServer(backend=backend, incoming_command_ckb=self.dictation_command_cbk)
         self.server.run()

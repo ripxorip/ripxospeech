@@ -49,7 +49,7 @@ int main(void)
     usetup.id.bustype = BUS_USB;
     usetup.id.vendor = 0x1234;  /* sample vendor */
     usetup.id.product = 0x5678; /* sample product */
-    strcpy(usetup.name, "Example device");
+    strcpy(usetup.name, "Ripxospeech");
 
     ioctl(fd, UI_DEV_SETUP, &usetup);
     ioctl(fd, UI_DEV_CREATE);
@@ -63,17 +63,7 @@ int main(void)
      */
     sleep(1);
 
-    /* Key press, report the event, send key release, and report again */
-    emit(fd, EV_KEY, KEY_A, 1);
-    emit(fd, EV_SYN, SYN_REPORT, 0);
-    emit(fd, EV_KEY, KEY_A, 0);
-    emit(fd, EV_SYN, SYN_REPORT, 0);
-
-    /*
-     * Give userspace some time to read the events before we destroy the
-     * device with UI_DEV_DESTOY.
-     */
-    sleep(1);
+    printf("*Virtual keyboard server started\n");
 
 
     int sockfd;
