@@ -801,7 +801,7 @@ FodyWeavers.xsd
 usb_dongle/build
 usb_dongle/.vscode/
 
-
+ripxospeech_gtk/build/
 
 # For PCBs designed using KiCad: http://www.kicad-pcb.org/
 # Format documentation: http://kicad-pcb.org/help/file-formats/
@@ -833,3 +833,5 @@ fp-info-cache
 \#auto_saved_files#
 *.kicad_pcb.lck
 usb_dongle_hw/usb_dongle_hw-backups/
+
+lang.jpg

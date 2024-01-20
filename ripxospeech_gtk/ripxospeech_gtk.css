@@ -1,0 +1,27 @@
+.button-color {
+    background-color: #ff0000;  /* Change this to the color you want */
+}
+
+.button-passive {
+    /* background-color: #FFBE6F; */
+}
+
+.button-passive:hover {
+    /* background-color: #FFA348; */
+}
+
+.button-active {
+    background-color: #2EC27E;
+}
+
+.button-active:hover {
+    background-color: #26A269;
+}
+
+.button-stop {
+    /* background-color: #ED333B; */
+}
+
+.button-stop:hover {
+    /* background-color: #F66151; */
+}
