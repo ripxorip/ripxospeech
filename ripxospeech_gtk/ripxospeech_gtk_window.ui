@@ -55,6 +55,11 @@
               </object>
             </child>
             <child>
+              <object class="GtkButton" id="talonConfig">
+                <property name="label">Edit Configuration</property>
+              </object>
+            </child>
+            <child>
               <object class="GtkSeparator"/>
             </child>
             <child>

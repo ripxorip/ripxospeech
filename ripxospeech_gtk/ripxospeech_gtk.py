@@ -60,6 +60,7 @@ class MyApp(Adw.Application):
         self.buttons = {
             'talonCommand': builder.get_object('talonCommand'),
             'talonSentence': builder.get_object('talonSentence'),
+            'talonConfig': builder.get_object('talonConfig'),
             'winRun': builder.get_object('winRun'),
             'winSV': builder.get_object('winSV'),
             'winEN': builder.get_object('winEN'),
@@ -89,11 +90,3 @@ class MyApp(Adw.Application):
         # Call backend gui_button_clicked with the object id
         obj_name = next(name for name, btn in self.buttons.items() if btn == button)
         self.backend.gui_button_clicked(obj_name)
-        """
-        self.backend.stop_audio_stream()
-        style_context = self.talonCommandButton.get_style_context()
-        if style_context.has_class('button-color'):
-            style_context.remove_class('button-color')
-        else:
-            style_context.add_class('button-color')
-        """

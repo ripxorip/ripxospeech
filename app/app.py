@@ -198,6 +198,9 @@ class App:
             self.clicked_button_incoming_command("start_win11_swe") 
         elif button == 'stop':
             self.clicked_button_incoming_command("stop")
+        elif button == 'talonConfig':
+            # Open the browser to http://voiceboxlinux:8443/?folder=/talon
+            os.system("xdg-open http://voiceboxlinux:8443/?folder=/talon")
         elif button == 'winSV':
             if self.winLang == "EN":
                 self.toggle_win_lang()
