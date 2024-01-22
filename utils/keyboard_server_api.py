@@ -1,5 +1,6 @@
 import os
 import subprocess
+import socket
 from utils.constants import *
 
 def get_hid_raw_filename(usb_id):
@@ -23,8 +24,9 @@ def send_string_to_ripxovoice_hid(s):
 def send_string_to_local_server(s):
     addr = "127.0.0.1"
     port = LOCAL_SERVER_PORT
-    print(s)
-    os.system("echo -ne '{}' | nc -u {} {}".format(s, addr, port))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.sendto(s.encode(), (addr, port))
+    sock.close()
 
 def usb_dongle_is_connected():
     return get_hid_raw_filename("CAFE:4005") != None
