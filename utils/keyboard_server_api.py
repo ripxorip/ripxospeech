@@ -23,9 +23,15 @@ def send_string_to_ripxovoice_hid(s):
 
 def send_string_to_local_server(s):
     addr = "127.0.0.1"
-    port = LOCAL_SERVER_PORT
+    port = int(LOCAL_SERVER_PORT)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.sendto(s.encode(), (addr, port))
+    # s contains the bytes to send as a string like \x01\x00\x00\x00
+    b = bytearray()
+    for i in s.split("\\x"):
+        if i:
+            b.append(int(i, 16))
+
+    sock.sendto(b, (addr, port))
     sock.close()
 
 def usb_dongle_is_connected():
