@@ -118,7 +118,7 @@ class KeyboardServer:
             print(f"Unknown event type: {event_type}")
 
     def handle_incoming_command(self, cmd):
-        if self.incoming_command_ckb:
+        if cmd != "toggle_win_lang" and self.incoming_command_ckb:
             self.incoming_command_ckb(cmd)
         if cmd == "stop":
             send_udp_string("engine_win11_swe", 5000, "stop")
@@ -140,6 +140,11 @@ class KeyboardServer:
             send_udp_string("engine_win11_swe", 5000, "stop")
             send_udp_string("engine_talon", 5000, "stop")
             send_udp_string("engine_talon", 5005, "start@{}".format(self.ip))
+        elif cmd == "toggle_win_lang":
+            send_udp_string("engine_win11_swe", 5000, "toggle-lang")
+            # Since we dont want to freeze the thread we call the callback here
+            if self.incoming_command_ckb:
+                self.incoming_command_ckb(cmd)
 
     def handle_incoming_command_key(self, key):
         if key == 'f1':
@@ -149,7 +154,7 @@ class KeyboardServer:
         elif key == 'f3':
             self.handle_incoming_command("start_talon_dictation")
         elif key == 'f4':
-            pass
+            self.handle_incoming_command("toggle_win_lang")
         elif key == 'f8':
             pass
         elif key == 'f9':

@@ -94,17 +94,6 @@ class App:
             lang = "EN"
         self.winLang = lang
 
-    def toggle_win_lang(self):
-        req_str = "toggle-lang"
-        bytes = req_str.encode('utf-8')
-        # Send the string to
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes, (IP_ADDR["engine_win11_swe"], 5000))
-        time.sleep(0.5)
-        self.get_win_lang()
-        self.update_gui_state()
-        self.gui_callback(self.gui_state)
-
     def keyboard_server(self):
         backend = 'virtual'
         if usb_dongle_is_connected():
@@ -141,7 +130,12 @@ class App:
 
     # Called when a dictation command is trigged using a manual key press like F8-F12 on Gnome
     def dictation_command_cbk(self, cmd):
-        if cmd != "":
+        if cmd == "toggle_win_lang":
+            time.sleep(4)
+            self.get_win_lang()
+            self.update_gui_state()
+            self.gui_callback(self.gui_state)
+        elif cmd != "":
             self.running_engine = cmd
             if cmd == "stop":
                 self.stop_audio_stream()
@@ -196,7 +190,7 @@ class App:
             os.system("xdg-open http://voiceboxlinux:8443/?folder=/talon")
         elif button == 'winSV':
             if self.winLang == "EN":
-                self.toggle_win_lang()
+                self.server.handle_incoming_command("toggle_win_lang")
         elif button == 'winEN':
             if self.winLang == "SV":
-                self.toggle_win_lang()
+                self.server.handle_incoming_command("toggle_win_lang")
