@@ -208,6 +208,10 @@ namespace win11_keysender
             {
                 var simulator = new InputSimulator();
                 simulator.Keyboard.ModifiedKeyStroke(VirtualKeyCode.LWIN, VirtualKeyCode.SPACE);
+                Thread.Sleep(500);
+                simulator.Keyboard.ModifiedKeyStroke(VirtualKeyCode.LMENU, VirtualKeyCode.TAB);
+                Thread.Sleep(500);
+                simulator.Keyboard.ModifiedKeyStroke(new[] {  VirtualKeyCode.CONTROL, VirtualKeyCode.SHIFT }, VirtualKeyCode.F5);
             }
 
             else if (inputText == "get-current-lang")
