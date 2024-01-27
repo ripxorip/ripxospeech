@@ -5,8 +5,8 @@ import subprocess
 import os
 
 from keyboard_server.keycodes import *
-from keyboard_server.hid_backend import *
 from keyboard_server.serial_backend import *
+from keyboard_server.virtual_backend import *
 from keyboard_server.utils import *
 from utils.constants import *
 
@@ -46,18 +46,45 @@ class KeyPresser:
         self.backend.write(report)
 
 class KeyboardServer:
-    def __init__(self, backend='hid'):
-        if backend == 'hid':
-            self.backend = HID_Backend(self.handle_incoming_command)
+    def __init__(self, backend='virtual', incoming_command_ckb = None):
+        self.virtual_backend = False
+        if backend == 'virtual':
+            self.backend = Virtual_Backend()
+            self.virtual_backend = True
         else:
-            self.backend = Serial_Backend(self.handle_incoming_command)
+            self.backend = Serial_Backend()
 
         self.key_presser = KeyPresser(self.backend)
         self.ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
+        self.incoming_command_ckb = incoming_command_ckb
 
     def key_press(self, key):
         pressed_key = x11_key_code_to_name[key]
+        if pressed_key == 'SPEC_KEY_Ä':
+            self.key_press(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            self.key_press(get_x11_keycode_from_name("KEY_R"));
+
+            self.key_release(get_x11_keycode_from_name("KEY_R"));
+            self.key_release(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            return
+        elif pressed_key == 'SPEC_KEY_Ö':
+            self.key_press(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            self.key_press(get_x11_keycode_from_name("KEY_O"));
+
+            self.key_release(get_x11_keycode_from_name("KEY_O"));
+            self.key_release(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            return
+        elif pressed_key == 'SPEC_KEY_Å':
+            self.key_press(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            self.key_press(get_x11_keycode_from_name("KEY_A"));
+
+            self.key_release(get_x11_keycode_from_name("KEY_A"));
+            self.key_release(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            return
         colemak_key = qwerty_to_colemak_dh(pressed_key)
+        if self.virtual_backend:
+            self.backend.key_press(colemak_key)
+            return
         hid_key = key_name_to_hid_report_code[colemak_key]
         print('Press Key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
         self.key_presser.press_key(hid_key)
@@ -66,7 +93,13 @@ class KeyboardServer:
 
     def key_release(self, key):
         pressed_key = x11_key_code_to_name[key]
+        if pressed_key.startswith('SPEC_KEY_'):
+            # These are handled as macros on key press
+            return
         colemak_key = qwerty_to_colemak_dh(pressed_key)
+        if self.virtual_backend:
+            self.backend.key_release(colemak_key)
+            return
         hid_key = key_name_to_hid_report_code[colemak_key]
         print('Release key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
         self.key_presser.release_key(hid_key)
@@ -84,24 +117,82 @@ class KeyboardServer:
         else:
             print(f"Unknown event type: {event_type}")
 
-    def handle_incoming_command(self, command):
-        util_handle_command(command, self.ip)
+    def handle_incoming_command(self, cmd):
+        if self.incoming_command_ckb:
+            self.incoming_command_ckb(cmd)
+        if cmd == "stop":
+            send_udp_string("engine_win11_swe", 5000, "stop")
+            send_udp_string("engine_talon", 5000, "stop")
+            send_udp_string("engine_talon", 5005, "stop")
+        elif cmd == "start_talon_command":
+            send_udp_string("engine_win11_swe", 5000, "stop")
+            send_udp_string("engine_talon", 5005, "stop")
+            send_udp_string("engine_talon", 5000, "start_command@{}".format(self.ip))
+        elif cmd == "start_talon_dictation":
+            send_udp_string("engine_win11_swe", 5000, "stop")
+            send_udp_string("engine_talon", 5005, "stop")
+            send_udp_string("engine_talon", 5000, "start_dictation@{}".format(self.ip))
+        elif cmd == "start_win11_swe":
+            send_udp_string("engine_talon", 5000, "stop")
+            send_udp_string("engine_talon", 5005, "stop")
+            send_udp_string("engine_win11_swe", 5000, "start@{}".format(self.ip))
+        elif cmd == "start_gdocs":
+            send_udp_string("engine_win11_swe", 5000, "stop")
+            send_udp_string("engine_talon", 5000, "stop")
+            send_udp_string("engine_talon", 5005, "start@{}".format(self.ip))
+
+    def handle_incoming_command_key(self, key):
+        if key == 'f1':
+            self.handle_incoming_command("start_talon_command")
+        elif key == 'f2':
+            self.handle_incoming_command("start_win11_swe")
+        elif key == 'f3':
+            self.handle_incoming_command("start_talon_dictation")
+        elif key == 'f4':
+            pass
+        elif key == 'f8':
+            pass
+        elif key == 'f9':
+            pass
+        elif key == 'f10':
+            pass
+        elif key == 'f11':
+            pass
+        elif key == 'f12':
+            self.handle_incoming_command("stop")
+
+    def command_server(self):
+        # create UDP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # bind socket to address and port
+        sock.bind(("0.0.0.0", int(LOCAL_SERVER_PORT)))
+
+        while True:
+            data, addr = sock.recvfrom(1024)
+            key = data.decode()
+            self.handle_incoming_command_key(key)
+            continue
+            self.handle_incoming_command(cmd)
 
     def run(self):
         """Event loop for UDP."""
+
+        self.command_server_thread = threading.Thread(target=self.command_server)
+        self.command_server_thread.start()
+
         # create UDP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        self.backend_thread = threading.Thread(target=self.backend.read_thread)
-        self.backend_thread.start()
-
         # bind socket to address and port
         sock.bind(("0.0.0.0", int(VOICE_BOX_CLIENT_PORT)))
 
         # event loop
         while True:
             data, addr = sock.recvfrom(1024)
-            message = data.decode()
+            try:
+                message = data.decode()
+            except Exception as e:
+                print(f"Invalid message: {data}")
+                continue
             parts = message.split(",")
             if len(parts) != 2:
                 print(f"Invalid message: {message}")

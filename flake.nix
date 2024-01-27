@@ -2,7 +2,7 @@
   description = "Nix environment for my speech library";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
     flake-utils.url = "github:numtide/flake-utils";
 
     nix-formatter-pack.url = "github:Gerschtli/nix-formatter-pack";
@@ -26,6 +26,8 @@
       };
 
       python_pkgs = pkgs.python3Packages;
+      virtual_keyboard = pkgs.callPackage ./virtual_keyboard {};
+      ripxospeech_gtk = pkgs.callPackage ./ripxospeech_gtk {virtual_keyboard = virtual_keyboard;};
 
     in
     {
@@ -59,6 +61,10 @@
           #python3Packages.wrapPython
         ];
       };
+
+      packages.ripxospeech_gtk = ripxospeech_gtk;
+      packages.virtual_keyboard = virtual_keyboard;
+
       packages.default = pkgs.python3Packages.buildPythonApplication {
         pname = "ripxospeech";
         version = "1.0";

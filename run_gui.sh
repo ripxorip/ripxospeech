@@ -1,0 +1,1 @@
+nix develop .#ripxospeech_gtk -c bash -c "python ripxospeech.py -a app"

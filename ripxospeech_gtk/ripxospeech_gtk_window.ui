@@ -1,0 +1,174 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.16.0 -->
+<interface>
+  <!-- interface-name fortnox_time_reporter-window.ui -->
+  <requires lib="Adw" version="1.0"/>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="gio" version="2.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  <object class="AdwApplicationWindow" id="RipxospeechWindow">
+    <property name="default-height">400</property>
+    <property name="default-width">600</property>
+    <property name="title">Ripxospeech</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkHeaderBar" id="header_bar">
+            <child type="end">
+              <object class="GtkMenuButton">
+                <property name="icon-name">open-menu-symbolic</property>
+                <property name="menu-model">primary_menu</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="margin-bottom">20</property>
+            <property name="margin-end">80</property>
+            <property name="margin-start">80</property>
+            <property name="margin-top">20</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">12</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkLabel" id="label">
+                <property name="label">Talon</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="talonCommand">
+                <property name="label">Run Talon Command</property>
+                <style>
+                  <class name="start_button"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="talonSentence">
+                <property name="label">Run Talon Sentence</property>
+                <property name="name">talonSentence</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="talonConfig">
+                <property name="label">Edit Configuration</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Windows</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="winLang">
+                <property name="label">Lang: EN</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="winRun">
+                <property name="label">Run</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="homogeneous">True</property>
+                <property name="spacing">12</property>
+                <property name="vexpand-set">True</property>
+                <child>
+                  <object class="GtkButton" id="winSV">
+                    <property name="label">SV</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="winEN">
+                    <property name="label">EN</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Control</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="stopButton">
+                <property name="label">Stop</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Settings</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="halign">baseline</property>
+                <property name="spacing">20</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="halign">start</property>
+                    <property name="label">Autostop</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSwitch" id="autoStopSwitch">
+                    <property name="halign">end</property>
+                    <property name="hexpand">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkLabel" id="statusText">
+                <property name="label">Status: Idle</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <menu id="primary_menu">
+    <section>
+      <item>
+        <attribute name="action">app.preferences</attribute>
+        <attribute name="label" translatable="yes">_Preferences</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.show-help-overlay</attribute>
+        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.about</attribute>
+        <attribute name="label" translatable="yes">_About Fortnox_time_reporter</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

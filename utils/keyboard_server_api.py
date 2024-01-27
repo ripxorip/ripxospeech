@@ -1,5 +1,6 @@
 import os
 import subprocess
+import socket
 from utils.constants import *
 
 def get_hid_raw_filename(usb_id):
@@ -20,29 +21,12 @@ def get_hid_raw_filename(usb_id):
 def send_string_to_ripxovoice_hid(s):
     os.system("echo -ne '{}' | sudo tee /dev/{}".format(s, get_hid_raw_filename("1D6B:0104")))
 
-def send_string_to_local_server(s):
-    addr = "127.0.0.1"
-    port = LOCAL_SERVER_PORT
-    print(s)
-    os.system("echo -ne '{}' | nc -u {} {}".format(s, addr, port))
-
 def usb_dongle_is_connected():
     return get_hid_raw_filename("CAFE:4005") != None
 
 def send_command_to_keyboard_server(command):
-    has_dongle = usb_dongle_is_connected()
-    b = [KEYBOARD_SERVER_COMMANDS[command]]
-    # Send the bytes to the device like
-    # echo -ne '\x01\x00\x00\x00' | sudo dd of=/dev/hidraw5 bs=4 conv=notrunc
-    # Convert the bytes to a string like \x01\x00\x00\x00
-    # Make sure that the size of the bytes is a multiple of 4
-    # Otherwise pad with 0s
-    while len(b) % 4 != 0:
-        b.append(0)
-    s = ""
-    for i in b:
-        s += "\\x{:02x}".format(i)
-    if has_dongle:
-        send_string_to_local_server(s)
-    else:
-        send_string_to_ripxovoice_hid(s)
+    addr = "127.0.0.1"
+    port = int(LOCAL_SERVER_PORT)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.sendto(command.encode(), (addr, port))
+    sock.close()
