@@ -93,6 +93,8 @@ class App:
         elif lang == "ENG":
             lang = "EN"
         self.winLang = lang
+        # FIXME This is too hacky
+        self.server.win_lang = lang
 
     def keyboard_server(self):
         backend = 'virtual'
