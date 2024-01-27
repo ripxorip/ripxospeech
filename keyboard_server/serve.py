@@ -141,6 +141,26 @@ class KeyboardServer:
             send_udp_string("engine_talon", 5000, "stop")
             send_udp_string("engine_talon", 5005, "start@{}".format(self.ip))
 
+    def handle_incoming_command_key(self, key):
+        if key == 'f1':
+            self.handle_incoming_command("start_talon_command")
+        elif key == 'f2':
+            self.handle_incoming_command("start_win11_swe")
+        elif key == 'f3':
+            self.handle_incoming_command("start_talon_dictation")
+        elif key == 'f4':
+            pass
+        elif key == 'f8':
+            pass
+        elif key == 'f9':
+            pass
+        elif key == 'f10':
+            pass
+        elif key == 'f11':
+            pass
+        elif key == 'f12':
+            self.handle_incoming_command("stop")
+
     def command_server(self):
         # create UDP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -149,7 +169,9 @@ class KeyboardServer:
 
         while True:
             data, addr = sock.recvfrom(1024)
-            cmd = data.decode()
+            key = data.decode()
+            self.handle_incoming_command_key(key)
+            continue
             self.handle_incoming_command(cmd)
 
     def run(self):
