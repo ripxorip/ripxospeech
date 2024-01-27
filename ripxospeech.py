@@ -23,7 +23,7 @@ def kill():
     tmux_kill()
 
 def serve():
-    backend = 'hid'
+    backend = 'virtual'
     if usb_dongle_is_connected():
         backend = 'serial'
     print("Starting keyboard server with backend: {}".format(backend))
@@ -52,6 +52,10 @@ def start_app():
     app.attach_backend(backend)
     app.run()
 
+def toggle_win_lang():
+    # FIXME Implement after the command refactoring has been done
+    pass
+
 def main():
     # Parse the arguments
     parser = argparse.ArgumentParser(description="Tool to use for routing my voice to different speech recognition servers")
@@ -77,6 +81,8 @@ def main():
         flash_dongle(args.firmware)
     elif args.action == "app":
         start_app()
+    elif args.action == "toggle_win_lang":
+        toggle_win_lang()
 
 if __name__ == "__main__":
     main()

@@ -117,9 +117,6 @@ class App:
         self.server = KeyboardServer(backend=backend, incoming_command_ckb=self.dictation_command_cbk)
         self.server.run()
 
-    def clicked_button_incoming_command(self, command):
-        self.server.handle_incoming_command(KEYBOARD_SERVER_COMMANDS[command])
-
     def set_gui_callback(self, callback):
         self.gui_callback = callback
 
@@ -143,11 +140,7 @@ class App:
         self.gui_state['labels']['winLang'] = "Lang: " + self.winLang
 
     # Called when a dictation command is trigged using a manual key press like F8-F12 on Gnome
-    def dictation_command_cbk(self, command):
-        cmd = ""
-        for key, value in KEYBOARD_SERVER_COMMANDS.items():
-            if value == command:
-                cmd = key
+    def dictation_command_cbk(self, cmd):
         if cmd != "":
             self.running_engine = cmd
             if cmd == "stop":
@@ -191,13 +184,13 @@ class App:
             return
 
         if button == 'talonCommand':
-            self.clicked_button_incoming_command("start_talon_command")
+            self.server.handle_incoming_command("start_talon_command")
         elif button == 'talonSentence':
-            self.clicked_button_incoming_command("start_talon_dictation")
+            self.server.handle_incoming_command("start_talon_dictation")
         elif button == 'winRun':
-            self.clicked_button_incoming_command("start_win11_swe") 
+            self.server.handle_incoming_command("start_win11_swe") 
         elif button == 'stop':
-            self.clicked_button_incoming_command("stop")
+            self.server.handle_incoming_command("stop")
         elif button == 'talonConfig':
             # Open the browser to http://voiceboxlinux:8443/?folder=/talon
             os.system("xdg-open http://voiceboxlinux:8443/?folder=/talon")

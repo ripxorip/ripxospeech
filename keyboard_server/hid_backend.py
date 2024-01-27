@@ -1,6 +1,8 @@
 # This backend is used together with an embedded Linux device such as the Raspberry Pi 4.
 # The device uses the use the USB gadget kernel module simulate keyboard input.
 
+# OBSOLOTE - Just kept for reference
+
 import os
 
 class HID_Backend:
