@@ -124,7 +124,10 @@ x11_key_code_to_name = {
     0x84: "KEY_YEN",
     0x85: "KEY_LEFTMETA",
     0x86: "KEY_RIGHTMETA",
-    0x87: "KEY_COMPOSE"
+    0x87: "KEY_COMPOSE",
+    0xca: "SPEC_KEY_Ä",
+    0xcc: "SPEC_KEY_Å",
+    0xe6: "SPEC_KEY_Ö"
 }
 
 key_name_to_hid_report_code = {

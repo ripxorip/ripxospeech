@@ -60,6 +60,27 @@ class KeyboardServer:
 
     def key_press(self, key):
         pressed_key = x11_key_code_to_name[key]
+        if pressed_key == 'SPEC_KEY_Ä':
+            self.key_press(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            self.key_press(get_x11_keycode_from_name("KEY_R"));
+
+            self.key_release(get_x11_keycode_from_name("KEY_R"));
+            self.key_release(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            return
+        elif pressed_key == 'SPEC_KEY_Ö':
+            self.key_press(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            self.key_press(get_x11_keycode_from_name("KEY_O"));
+
+            self.key_release(get_x11_keycode_from_name("KEY_O"));
+            self.key_release(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            return
+        elif pressed_key == 'SPEC_KEY_Å':
+            self.key_press(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            self.key_press(get_x11_keycode_from_name("KEY_A"));
+
+            self.key_release(get_x11_keycode_from_name("KEY_A"));
+            self.key_release(get_x11_keycode_from_name("KEY_RIGHTALT"));
+            return
         colemak_key = qwerty_to_colemak_dh(pressed_key)
         if self.virtual_backend:
             self.backend.key_press(colemak_key)
@@ -72,6 +93,9 @@ class KeyboardServer:
 
     def key_release(self, key):
         pressed_key = x11_key_code_to_name[key]
+        if pressed_key.startswith('SPEC_KEY_'):
+            # These are handled as macros on key press
+            return
         colemak_key = qwerty_to_colemak_dh(pressed_key)
         if self.virtual_backend:
             self.backend.key_release(colemak_key)
