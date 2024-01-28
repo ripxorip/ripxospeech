@@ -61,6 +61,7 @@ class KeyboardServer:
         self.win_lang = "SV"
 
         # Tribute to 1984
+        # The Doubluthinks shall be selectable by the user if active or not
         self.dts = {'se': Doublethink('se'), 'en_talon': Doublethink('en'), 'en_win': Doublethink('en')}
 
         self.dts['se'].set_emit_keyevent(self.handle_keyevent)
@@ -68,6 +69,7 @@ class KeyboardServer:
         self.dts['en_win'].set_emit_keyevent(self.handle_keyevent)
 
         self.dt = None
+
     def key_press(self, key):
         pressed_key = x11_key_code_to_name[key]
         if pressed_key == 'SPEC_KEY_Ä':
@@ -96,7 +98,6 @@ class KeyboardServer:
             self.backend.key_press(colemak_key)
             return
         hid_key = key_name_to_hid_report_code[colemak_key]
-        print('Press Key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
         self.key_presser.press_key(hid_key)
 
         return 'Key press received: {}'.format(key)
@@ -111,7 +112,6 @@ class KeyboardServer:
             self.backend.key_release(colemak_key)
             return
         hid_key = key_name_to_hid_report_code[colemak_key]
-        print('Release key: {}, Colemak key: {}, HID key: {}'.format(pressed_key, colemak_key, hid_key))
         self.key_presser.release_key(hid_key)
 
         return 'Key release received: {}'.format(key)

@@ -10,11 +10,9 @@ class Virtual_Backend:
         pass
 
     def key_press(self, key):
-        print("key_press: " + key)
         self.write(chr(keyname_to_linux_event_code[key]) + chr(0))
 
     def key_release(self, key):
-        print("key_release: " + key)
         self.write(chr(keyname_to_linux_event_code[key]) + chr(1))
 
     def write(self, report):
