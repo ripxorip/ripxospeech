@@ -173,9 +173,13 @@ class KeyboardServer:
         elif key == 'f2':
             self.handle_incoming_command("start_win11_swe")
         elif key == 'f3':
-            self.handle_incoming_command("start_talon_dictation")
+            if self.dt == None:
+                self.handle_incoming_command("start_talon_dictation")
+            else:
+                self.dt.redo()
         elif key == 'f4':
-            self.handle_incoming_command("toggle_win_lang")
+            if self.dt != None:
+                self.dt.undo()
         elif key == 'f8':
             pass
         elif key == 'f9':
