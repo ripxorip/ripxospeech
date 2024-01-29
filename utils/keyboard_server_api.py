@@ -4,6 +4,9 @@ import socket
 from utils.constants import *
 
 def get_hid_raw_filename(usb_id):
+    if not os.path.exists("/sys/class/hidraw"):
+        print('Info: /sys/class/hidraw does not exist.')
+        return None
     ret = subprocess.check_output(["ls", "/sys/class/hidraw"]).decode("utf-8").strip().splitlines()
     # Find which hidraw device is the USB device
     for r in ret:
