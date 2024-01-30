@@ -172,6 +172,17 @@ class App:
     def teardown(self):
         self.stop_audio_stream()
         self.send_command_to_sound_host("stop")
+        # send 0xdeadbef0 to kill each thread
+        # Print out information about all currently running threads
+        bytes = "0xdeadbeef".encode('utf-8')
+        # Send the specified bytes to the specified server over UDP using socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(bytes, ("127.0.0.1", int(LOCAL_SERVER_PORT)))
+        sock.sendto(bytes, ("127.0.0.1", int(VOICE_BOX_CLIENT_PORT)))
+
+        # Kill the virtual keyboard server
+        bytes = 0xdeadbeef.to_bytes(4)
+        sock.sendto(bytes, ("127.0.0.1", int(8734)))
 
     def gui_button_clicked(self, button):
         # Just to get the initial state correct

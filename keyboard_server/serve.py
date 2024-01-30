@@ -200,9 +200,9 @@ class KeyboardServer:
         while True:
             data, addr = sock.recvfrom(1024)
             key = data.decode()
+            if key == "0xdeadbeef":
+                break
             self.handle_incoming_command_key(key)
-            continue
-            self.handle_incoming_command(cmd)
 
     def run(self):
         self.command_server_thread = threading.Thread(target=self.command_server)
@@ -221,6 +221,9 @@ class KeyboardServer:
             except Exception as e:
                 print(f"Invalid message: {data}")
                 continue
+            # Kill message
+            if message == "0xdeadbeef":
+                break
             parts = message.split(",")
             if len(parts) != 2:
                 print(f"Invalid message: {message}")

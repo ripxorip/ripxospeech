@@ -65,13 +65,13 @@ int main(void)
 
     printf("*Virtual keyboard server started\n");
 
-
     int sockfd;
     char buffer[MAXLINE];
     struct sockaddr_in servaddr, cliaddr;
 
     // Creating socket file descriptor
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
@@ -85,19 +85,31 @@ int main(void)
     servaddr.sin_port = htons(PORT);
 
     // Bind the socket with the server address
-    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
+    {
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
 
     int len, n;
-    len = sizeof(cliaddr); // len is value/result
+    uint32_t special_msg = htonl(0xdeadbeef); // Convert to network byte order
+    len = sizeof(cliaddr);                    // len is value/result
 
-    while (1) {
+    while (1)
+    {
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
-        if (buffer[1] == 0x00) {
+        // Check if received 4 bytes (size of uint32_t) and if the message is special_msg
+        if (n == sizeof(uint32_t) && *(uint32_t *)buffer == special_msg)
+        {
+            printf("*Kill message received, shutting down\n");
+            break;
+        }
+        if (buffer[1] == 0x00)
+        {
             emit(fd, EV_KEY, buffer[0], 1);
-        } else {
+        }
+        else
+        {
             emit(fd, EV_KEY, buffer[0], 0);
         }
         emit(fd, EV_SYN, SYN_REPORT, 0);

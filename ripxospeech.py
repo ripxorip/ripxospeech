@@ -37,7 +37,11 @@ def start_app():
     backend = App()
     app = MyApp(application_id="com.example.GtkApplication")
     app.attach_backend(backend)
-    app.run()
+    try:
+        app.run()
+    except KeyboardInterrupt:
+        app.quit()
+        backend.teardown()
 
 def toggle_win_lang():
     # FIXME Implement after the command refactoring has been done
