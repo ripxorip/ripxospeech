@@ -52,6 +52,7 @@
           python_pkgs.gst-python
           python_pkgs.numpy
           python_pkgs.pyserial
+          python_pkgs.sounddevice
           jacktrip
         ];
         nativeBuildInputs = with pkgs; [

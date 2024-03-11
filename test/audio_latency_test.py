@@ -8,14 +8,7 @@ import sys
 import os
 
 # Set the threshold
-threshold = 0.8
-
-# Define the callback function
-def callback(indata, frames, time, status):
-    for s in indata:
-        sample = s[0]
-        if abs(sample) > threshold:
-            print("Threshold exceeded")
+threshold = 0.5
 
 # Set buffer size and sample rate
 buffer_size = 64  # Adjust as needed
@@ -27,8 +20,8 @@ class Server:
         self.ip_thread_handle = threading.Thread(target=self.ip_thread)
         self.ip_thread_handle.start()
         with sd.InputStream(callback=self.audio_callback, blocksize=buffer_size, samplerate=sample_rate, channels=1) as stream:
-            sd.sleep(10000)
             print("Input latency:", stream.latency*1000, "ms")
+            sd.sleep(10000000)
 
     def audio_callback(self, indata, frames, time, status):
         for s in indata:
@@ -43,21 +36,17 @@ class Server:
 
     def ip_thread(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server_address = ('localhost', 7822)
+        server_address = ('0.0.0.0', 7822)
         s.bind(server_address)
         while True:
             data, address = s.recvfrom(4096)
-            print('received {} bytes from {}'.format(len(data), address))
-            print(data)
-            print(address)
             if data:
-                print(data.decode('utf-8'))
-                print('IP address:', address[0])
-                self.ip_addrrss = address[0]
+                self.ip_address = address[0]
                 self.has_peak = False
 
 class Client:
     def __init__(self, server_ip):
+        self.my_peak_time = 0
         self.server_ip = server_ip
         self.has_peak = False
 
@@ -69,39 +58,28 @@ class Client:
         self.threshold_exceeded_thread_handle.start()
 
         with sd.InputStream(callback=self.audio_callback, blocksize=buffer_size, samplerate=sample_rate, channels=1) as stream:
-            sd.sleep(10000)
             print("Input latency:", stream.latency*1000, "ms")
+            sd.sleep(10000000)
 
     def threshold_exceeded_thread(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server_address = ('localhost', 7822)
+        server_address = ('0.0.0.0', 7822)
         s.bind(server_address)
         while True:
             data, address = s.recvfrom(4096)
-            print('received {} bytes from {}'.format(len(data), address))
-            print(data)
-            print(address)
+            # Print the time difference in ms
+            print("Time difference:", (time.time() - self.my_peak_time)*1000, "ms")
 
-    def audio_callback(self, indata, frames, time, status):
+    def audio_callback(self, indata, frames, _time, status):
         for s in indata:
             sample = s[0]
             if abs(sample) > threshold and not self.has_peak:
                 self.has_peak = True
                 print("Threshold exceeded")
+                # Save the current time
+                self.my_peak_time = time.time()
 
 # FIXME Also save some audio and send back to verify that the quality was ok somehow!
-
-def main(mode, server_ip=None):
-    if mode == 'server':
-        # Server code here
-        pass
-    elif mode == 'client':
-        # Client code here
-        pass
-        with sd.InputStream(callback=callback, blocksize=buffer_size, samplerate=sample_rate, channels=1) as stream:
-            print("Input latency:", stream.latency*1000, "ms")
-            sd.sleep(10000)
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=['server', 'client'], help="run as server or client")
@@ -111,4 +89,7 @@ if __name__ == "__main__":
     if args.mode == 'client' and args.server_ip is None:
         parser.error("--server_ip is required if mode is client")
 
-    main(args.mode, args.server_ip)
+    if args.mode == 'server':
+        server = Server()
+    else:
+        client = Client(args.server_ip)
