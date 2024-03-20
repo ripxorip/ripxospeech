@@ -91,12 +91,54 @@ class Client:
                 # Save the current time
                 self.my_peak_time = time.time()
 
+class ManualClient:
+    #  This class is intended to be running on the raspberry pi
+    def __init__(self, server_ip):
+        self.buffer = np.full((buffer_size, 1), 0.00)  # Change the shape of the buffer to match outdata
+        self.stream = sd.OutputStream(callback=self.audio_callback, blocksize=buffer_size, samplerate=sample_rate, channels=1)
+        self.stream.start()
+
+        self.server_ip = server_ip
+
+        # Start a new thread that waits for user input
+        self.input_thread = threading.Thread(target=self.wait_for_input)
+        self.input_thread.start()
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_address = (self.server_ip, 7822)
+        s.sendto(b"start_stream", server_address)
+
+        self.threshold_exceeded_thread_handle = threading.Thread(target=self.threshold_exceeded_thread)
+        self.threshold_exceeded_thread_handle.start()
+
+        self.has_sent_peak = False
+
+    def threshold_exceeded_thread(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_address = ('0.0.0.0', 7822)
+        s.bind(server_address)
+        while True:
+            data, address = s.recvfrom(4096)
+            # Print the time difference in ms
+            print("Time difference:", (time.time() - self.my_peak_time)*1000, "ms")
+
+    def wait_for_input(self):
+        while True:
+            input("Press Enter to write to the audio interface: ")
+            self.has_sent_peak = True
+            self.buffer = np.full((buffer_size, 1), 0.66)
+            self.my_peak_time = time.time()
+            break
+
+    def audio_callback(self, outdata, frames, time, status):
+        outdata[:] = self.buffer
+
 # Get the files by:
 # scp ripxorip@voiceboxlinux:/tmp/rec.wav /tmp/rec.wav && vlc /tmp/rec.wav
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=['server', 'client'], help="run as server or client")
+    parser.add_argument("mode", choices=['server', 'client', 'manual_client'], help="run as server, client, or manual client")
     parser.add_argument("--server_ip", help="the server IP address (required if mode is client)")
     args = parser.parse_args()
 
@@ -105,5 +147,7 @@ if __name__ == "__main__":
 
     if args.mode == 'server':
         server = Server()
-    else:
+    elif args.mode == 'client':
         client = Client(args.server_ip)
+    elif args.mode == 'manual_client':
+        manual_client = ManualClient(args.server_ip)
