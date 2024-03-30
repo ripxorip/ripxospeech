@@ -836,3 +836,5 @@ usb_dongle_hw/usb_dongle_hw-backups/
 
 lang.jpg
 code_server/config
+
+rt_audio_gateway/_out/
