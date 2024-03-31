@@ -13,16 +13,9 @@ short *buffer;
 double phase = 0.0;
 double phase_step = 2 * M_PI * 440.0 / SAMPLE_RATE; // Calculate phase step for 440 Hz
 
-static int play = 1;
-
 void callback(snd_async_handler_t *handler) {
     (void)handler; // Suppress unused variable warning (handler is used in the callback signature
     int err;
-
-    if (0 == play) {
-        printf("Paused\n");
-        return;
-    }
 
     for (snd_pcm_uframes_t i = 0; i < BUFFER_SIZE * 2; i += 2) { // 2 channels
         short sample = (short)(32767.0 * sin(phase));
