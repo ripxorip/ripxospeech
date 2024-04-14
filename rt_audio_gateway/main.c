@@ -165,23 +165,31 @@ int main() {
     // Allocate buffer
     buffer = (short *)malloc(buffer_size * 2 * sizeof(short)); // 2 channels, 2 bytes per channel
 
-    // Create and set up the asynchronous handler
-    snd_async_handler_t *handler;
-    snd_async_add_pcm_handler(&handler, pcm_handle, callback, NULL);
+    snd_pcm_poll_descriptors_count(pcm_handle);
+    struct pollfd fd;
 
-    callback(handler);
-
-    /*
-    pthread_t thread;
-    if (pthread_create(&thread, NULL, stream_thread, NULL) != 0) {
-        perror("pthread_create failed");
-        exit(EXIT_FAILURE);
+    if ((err = snd_pcm_poll_descriptors(pcm_handle, &fd, 1)) < 0) {
+        fprintf(stderr, "Cannot get poll descriptors: %s\n", snd_strerror(err));
+        exit(1);
     }
-    */
+
+    callback(NULL);
 
     // Main loop
     while (1) {
-        sleep(1);
+		fd_set wr_set;
+		FD_ZERO(&wr_set);
+		FD_SET(fd.fd, &wr_set);
+
+        struct timeval timeout;
+        timeout.tv_sec = 0;  // Zero seconds
+        timeout.tv_usec = 0; // Zero microseconds
+    
+        int r = select(FD_SETSIZE, 0, &wr_set, 0, &timeout);
+        printf("select returned %d\n", r);
+        if (r == 1)
+            callback(NULL);
+        //sleep(0.0001);
     }
 
     // Cleanup
