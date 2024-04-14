@@ -57,7 +57,7 @@ static void convert_buffer(float *input, uint16_t *output, uint32_t n_samples)
     for (uint32_t i = 0; i < n_samples; i++)
     {
         float sample = input[i];
-        output[i] = (uint16_t)((sample + 1.0f) * 32767.5f);
+        output[i] = (uint16_t)((sample) * 32767.5f);
     }
 }
 
