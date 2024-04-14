@@ -3,15 +3,77 @@
 #include <alsa/asoundlib.h>
 #include <math.h> // Include math.h for sin and M_PI
 #include <unistd.h> // Include unistd.h for sleep
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #define SAMPLE_RATE 48000
 #define BUFFER_SIZE 256
 #define PERIOD_SIZE 128
 
+#define PORT 8321
+
 snd_pcm_t *pcm_handle;
 short *buffer;
 double phase = 0.0;
 double phase_step = 2 * M_PI * 440.0 / SAMPLE_RATE; // Calculate phase step for 440 Hz
+
+typedef struct {
+    uint16_t n_samples;
+    uint64_t seq;
+    uint64_t timestamp;
+    uint16_t samples[BUFFER_SIZE];
+} rt_stream_packet_t;
+
+struct {
+    short buffer[2][BUFFER_SIZE];
+    uint32_t ping_pong;
+} internal = {0};
+
+void *stream_thread(void *arg) {
+    int sockfd;
+    struct sockaddr_in servaddr;
+    (void)arg;
+
+    // Create socket
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&servaddr, 0, sizeof(servaddr));
+
+    // Filling server information
+    servaddr.sin_family = AF_INET; // IPv4
+    servaddr.sin_port = htons(PORT);
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+
+    // Bind the socket with the server address
+    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    while (1) {
+        rt_stream_packet_t packet;
+        socklen_t len = sizeof(servaddr);
+
+        // Receive data
+        int n = recvfrom(sockfd, &packet, sizeof(packet), 0, (struct sockaddr *)&servaddr, &len);
+        if (n < 0) {
+            perror("recvfrom failed");
+        }
+        if (n != sizeof(packet)) {
+            fprintf(stderr, "Received packet of unexpected size: %d\n", n);
+            continue;
+        }
+
+        short *dest = internal.ping_pong ? internal.buffer[1] : internal.buffer[0];
+        memcpy(dest, packet.samples, sizeof(packet.samples));
+        printf("Received packet with %d samples\n", packet.n_samples);
+    }
+}
 
 void callback(snd_async_handler_t *handler) {
     (void)handler; // Suppress unused variable warning (handler is used in the callback signature
@@ -24,6 +86,14 @@ void callback(snd_async_handler_t *handler) {
         phase += phase_step;
         if (phase > 2 * M_PI) phase -= 2 * M_PI; // Keep phase within [0, 2*pi]
     }
+
+    /*
+    short *src = internal.ping_pong ? internal.buffer[0] : internal.buffer[1];
+    for (snd_pcm_uframes_t i = 0; i < BUFFER_SIZE; i++) {
+        buffer[i * 2] = src[i];     // left channel
+        buffer[i * 2 + 1] = src[i]; // right channel
+    }
+    */
 
     // Write data to PCM device
     if ((err = snd_pcm_writei(pcm_handle, buffer, BUFFER_SIZE)) < 0) {
@@ -101,15 +171,27 @@ int main() {
 
     callback(handler);
 
+    /*
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, stream_thread, NULL) != 0) {
+        perror("pthread_create failed");
+        exit(EXIT_FAILURE);
+    }
+    */
+
     // Main loop
     while (1) {
         sleep(1);
     }
 
     // Cleanup
+    //pthread_join(thread, NULL);
     free(buffer);
     snd_pcm_close(pcm_handle);
     snd_pcm_hw_params_free(params);
+
+    // FIXME perhaps not use two threads, sufficient with one instead?
+    // Yeah, probably go back to single thread again...
 
     return 0;
 }
