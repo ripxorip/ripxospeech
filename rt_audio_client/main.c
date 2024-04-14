@@ -2,10 +2,18 @@
 #include <errno.h>
 #include <math.h>
 #include <signal.h>
+#include <time.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <spa/param/audio/format-utils.h>
 
 #include <pipewire/pipewire.h>
+
+#define SAMPLES_PER_BUFFER 256
+#define STREAM_PORT 8321
+#define STREAM_IP "100.72.98.49"
 
 struct data
 {
@@ -15,6 +23,65 @@ struct data
     struct spa_audio_info format;
     unsigned move : 1;
 };
+
+struct {
+    uint32_t seq;
+    int sockfd;
+    struct sockaddr_in servaddr;
+} internal = {0};
+
+typedef struct {
+    uint16_t n_samples;
+    uint64_t seq;
+    uint64_t timestamp;
+    uint16_t samples[SAMPLES_PER_BUFFER];
+} rt_stream_packet_t;
+
+void setup_socket() {
+    // Create a socket
+    internal.sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (internal.sockfd < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set up the server address
+    memset(&internal.servaddr, 0, sizeof(internal.servaddr));
+    internal.servaddr.sin_family = AF_INET;
+    internal.servaddr.sin_port = htons(STREAM_PORT);
+    internal.servaddr.sin_addr.s_addr = inet_addr(STREAM_IP);
+}
+
+static void convert_buffer(float *input, uint16_t *output, uint32_t n_samples)
+{
+    for (uint32_t i = 0; i < n_samples; i++)
+    {
+        float sample = input[i];
+        output[i] = (uint16_t)((sample + 1.0f) * 32767.5f);
+    }
+}
+
+static void stream_buffer(uint16_t *samples, uint32_t n_samples)
+{
+    rt_stream_packet_t packet;
+
+    packet.seq = internal.seq;
+    internal.seq += 1;
+
+    packet.n_samples = n_samples;
+    memcpy(packet.samples, samples, n_samples * sizeof(uint16_t));
+
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    uint64_t timestamp = ts.tv_sec * 1000000000 + ts.tv_nsec;   
+
+    packet.timestamp = timestamp;
+
+     // Send the packet
+    if (sendto(internal.sockfd, &packet, sizeof(packet), 0, (struct sockaddr*)&internal.servaddr, sizeof(internal.servaddr)) < 0) {
+        perror("sendto failed");
+    }
+}
 
 /* our data processing function is in general:
  *
@@ -32,6 +99,9 @@ static void on_process(void *userdata)
     struct spa_buffer *buf;
     float *samples, max;
     uint32_t c, n, n_channels, n_samples, peak;
+
+    static float fbuf[SAMPLES_PER_BUFFER];
+    static uint16_t sbuf[SAMPLES_PER_BUFFER];
 
     if ((b = pw_stream_dequeue_buffer(data->stream)) == NULL)
     {
@@ -53,8 +123,16 @@ static void on_process(void *userdata)
     for (c = 0; c < data->format.info.raw.channels; c++)
     {
         max = 0.0f;
+        int count = 0;
         for (n = c; n < n_samples; n += n_channels)
+        {
             max = fmaxf(max, fabsf(samples[n]));
+            if (c == 0)
+            {
+                fbuf[count] = samples[n];
+                count += 1;
+            }
+        }
 
         peak = SPA_CLAMP(max * 30, 0, 39);
 
@@ -63,6 +141,9 @@ static void on_process(void *userdata)
     }
     data->move = true;
     fflush(stdout);
+
+    convert_buffer(fbuf, sbuf, SAMPLES_PER_BUFFER);
+    stream_buffer(sbuf, SAMPLES_PER_BUFFER);
 
     pw_stream_queue_buffer(data->stream, b);
 }
@@ -117,9 +198,13 @@ int main(int argc, char *argv[])
     struct pw_properties *props;
     struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
 
+    setup_socket();
+
     /* Not the most elegant way of doing this, but it will do for now, will PoC if this will
        even turn out to work or not haha */
-    setenv("PIPEWIRE_LATENCY", "256/48000", 1);
+    char latency[20];
+    sprintf(latency, "%d/48000", SAMPLES_PER_BUFFER);
+    setenv("PIPEWIRE_LATENCY", latency, 1);
 
     pw_init(&argc, &argv);
 
