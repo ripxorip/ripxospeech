@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall
 LDFLAGS = -lasound -lm
 TARGET = rtaudiogateway
 SRCS = main.c

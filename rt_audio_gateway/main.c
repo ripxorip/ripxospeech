@@ -79,6 +79,7 @@ void callback(snd_async_handler_t *handler) {
     (void)handler; // Suppress unused variable warning (handler is used in the callback signature
     int err;
 
+    /*
     for (snd_pcm_uframes_t i = 0; i < BUFFER_SIZE * 2; i += 2) { // 2 channels
         short sample = (short)(32767.0 * sin(phase));
         buffer[i] = sample; // left channel
@@ -86,14 +87,13 @@ void callback(snd_async_handler_t *handler) {
         phase += phase_step;
         if (phase > 2 * M_PI) phase -= 2 * M_PI; // Keep phase within [0, 2*pi]
     }
+    */
 
-    /*
-    short *src = internal.ping_pong ? internal.buffer[0] : internal.buffer[1];
-    for (snd_pcm_uframes_t i = 0; i < BUFFER_SIZE; i++) {
+       short *src = internal.buffer[0];
+       for (snd_pcm_uframes_t i = 0; i < BUFFER_SIZE; i++) {
         buffer[i * 2] = src[i];     // left channel
         buffer[i * 2 + 1] = src[i]; // right channel
-    }
-    */
+       }
 
     // Write data to PCM device
     if ((err = snd_pcm_writei(pcm_handle, buffer, BUFFER_SIZE)) < 0) {
@@ -175,21 +175,63 @@ int main() {
 
     callback(NULL);
 
+    int sockfd;
+    struct sockaddr_in servaddr;
+
+    // Create socket
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&servaddr, 0, sizeof(servaddr));
+
+    // Filling server information
+    servaddr.sin_family = AF_INET; // IPv4
+    servaddr.sin_port = htons(PORT);
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+
+    // Bind the socket with the server address
+    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    rt_stream_packet_t packet;
+    //socklen_t len = sizeof(servaddr);
+
     // Main loop
     while (1) {
-		fd_set wr_set;
-		FD_ZERO(&wr_set);
-		FD_SET(fd.fd, &wr_set);
+        fd_set rd_set;  // Read set
+        fd_set wr_set;  // Write set
+        FD_ZERO(&rd_set);
+        FD_ZERO(&wr_set);
+        FD_SET(fd.fd, &wr_set);
+        FD_SET(sockfd, &rd_set);  // Add the sockfd to the read set
 
         struct timeval timeout;
         timeout.tv_sec = 0;  // Zero seconds
         timeout.tv_usec = 0; // Zero microseconds
-    
-        int r = select(FD_SETSIZE, 0, &wr_set, 0, &timeout);
-        printf("select returned %d\n", r);
-        if (r == 1)
+                             // Use the maximum of fd.fd and sockfd plus 1 as the first parameter
+        int max_fd = fd.fd > sockfd ? fd.fd : sockfd;
+        select(max_fd + 1, &rd_set, &wr_set, NULL, &timeout);
+
+        //printf("select returned %d\n", r);
+
+        if (FD_ISSET(fd.fd, &wr_set)) {
+            // fd.fd is ready for writing
             callback(NULL);
-        //sleep(0.0001);
+        }
+
+        if (FD_ISSET(sockfd, &rd_set)) {
+            ssize_t bytes_read = read(sockfd, &packet, sizeof(packet));
+            if (bytes_read < 0) {
+                perror("read failed");
+            }
+            else {
+                memcpy(internal.buffer[0], packet.samples, sizeof(packet.samples));
+            }
+        }
     }
 
     // Cleanup
