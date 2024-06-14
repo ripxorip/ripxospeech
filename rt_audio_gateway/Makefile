@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS += $(shell pkg-config --cflags libpipewire-0.3) -I../rt_audio_common -Iinc -Wall
 LDFLAGS = -lm $(shell pkg-config --libs libpipewire-0.3) 
 TARGET = rtaudiogateway
-SRCS = src/main.c src/rt_receiver.c
+SRCS = src/main.c src/rt_receiver.c src/rt_ring_buffer.c
 OUTDIR = _out
 OBJS = $(addprefix $(OUTDIR)/, $(SRCS:.c=.o))
 Q = @

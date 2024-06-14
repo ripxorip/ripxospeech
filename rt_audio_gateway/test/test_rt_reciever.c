@@ -36,10 +36,16 @@ void create_packet(rt_stream_packet_t *packet, int seq) {
     }
 }
 
+void check_samples(int16_t *audio_device_data, int seq) {
+    for (int i = 0; i < RT_STREAM_PACKET_FRAME_SIZE; i++) {
+        ASSERT(audio_device_data[i] == internal.test_sine[seq*RT_STREAM_PACKET_FRAME_SIZE + i], "rt_rcv_get_samples() returned incorrect data");
+    }
+}
 void init() {
     internal.num_frames = 2048;
     internal.test_sine = malloc(internal.num_frames*RT_STREAM_PACKET_FRAME_SIZE*sizeof(int16_t));
     generate_sine_s16(internal.test_sine, internal.num_frames*RT_STREAM_PACKET_FRAME_SIZE);
+    printf("\n");
 }
 
 void test_ring_buffer()
@@ -90,15 +96,66 @@ void test_when_in_sync() {
         if (i >= 1)
         {
             rt_rcv_get_samples(audio_device_data, RT_STREAM_PACKET_FRAME_SIZE, 1);
-            ASSERT(memcmp(audio_device_data, internal.test_sine + (RT_STREAM_PACKET_FRAME_SIZE * (i-1)), RT_STREAM_PACKET_FRAME_SIZE * sizeof(int16_t)) == 0, "rt_rcv_get_samples() returned incorrect data");
+            check_samples(audio_device_data, i-1);
         }
     }
     printf(":: ✅ Test when in sync passed::\n\n");
+}
+
+void test_underrun() {
+    const int buffer_size = 3;
+    rt_rcv_init(buffer_size);
+    rt_stream_packet_t packet;
+    int16_t *audio_device_data = malloc(RT_STREAM_PACKET_FRAME_SIZE*sizeof(int16_t));
+
+    printf(":: Test underrun ::\n");
+    for (int i = 0; i < 5; i++) {
+        create_packet(&packet, i);
+        rt_rcv_add_packet(&packet);
+        rt_rcv_get_samples(audio_device_data, RT_STREAM_PACKET_FRAME_SIZE, 1);
+        check_samples(audio_device_data, i);
+    }
+    rt_rcv_get_samples(audio_device_data, RT_STREAM_PACKET_FRAME_SIZE, 1);
+    // Verify that we got all zeros
+    for (int i = 0; i < RT_STREAM_PACKET_FRAME_SIZE; i++) {
+        ASSERT(audio_device_data[i] == 0, "rt_rcv_get_samples() returned incorrect data");
+    }
+    printf(":: ✅ Test underrun passed::\n\n");
+}
+
+void test_overrun() {
+    printf(":: Test overrun ::\n");
+    const int buffer_size = 3;
+    rt_rcv_init(buffer_size);
+    rt_stream_packet_t packet;
+    int16_t *audio_device_data = malloc(RT_STREAM_PACKET_FRAME_SIZE*sizeof(int16_t));
+    for (int i = 0; i < 2; i++) {
+        create_packet(&packet, i);
+        rt_rcv_add_packet(&packet);
+    }
+    for (int i = 0; i < 2; i++) {
+        rt_rcv_get_samples(audio_device_data, RT_STREAM_PACKET_FRAME_SIZE, 1);
+        check_samples(audio_device_data, i);
+    }
+
+    for (int i = 0; i < 3; i++) {
+        create_packet(&packet, i);
+        rt_rcv_add_packet(&packet);
+    }
+
+    rt_rcv_get_samples(audio_device_data, RT_STREAM_PACKET_FRAME_SIZE, 1);
+    // Verify that we got all zeros (the buffer got dropped)
+    for (int i = 0; i < RT_STREAM_PACKET_FRAME_SIZE; i++) {
+        ASSERT(audio_device_data[i] == 0, "rt_rcv_get_samples() returned incorrect data");
+    }
+    printf(":: ✅ Test overrun passed::\n\n");
 }
 
 int main() {
     init();
     test_ring_buffer();
     test_when_in_sync();
+    test_underrun();
+    test_overrun();
     return 0;
 }
