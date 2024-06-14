@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     sprintf(latency, "%d/48000", RT_STREAM_PACKET_FRAME_SIZE);
     setenv("PIPEWIRE_LATENCY", latency, 1);
 
-    rt_rcv_init();
+    rt_rcv_init(3);
 
     pw_init(&argc, &argv);
 
