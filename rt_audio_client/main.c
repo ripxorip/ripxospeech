@@ -21,7 +21,7 @@
 
 #define SAMPLE_RATE 48000
 
-#define TEST_MODE 1
+#define TEST_MODE 0
 
 struct data
 {
