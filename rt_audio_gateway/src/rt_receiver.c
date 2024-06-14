@@ -2,11 +2,12 @@
 #include "rt_receiver.h"
 
 static struct {
+    int buffer_size;
     rt_stream_packet_t packet;
 } internal = {0};
 
-void rt_rcv_init() {
-    (void)internal;
+void rt_rcv_init(int buffer_size) {
+    internal.buffer_size = buffer_size;
 }
 
 void rt_rcv_add_packet(rt_stream_packet_t *packet) {

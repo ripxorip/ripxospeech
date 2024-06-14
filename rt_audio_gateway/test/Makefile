@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -I../inc -I../src -I../../rt_audio_common
+CFLAGS = -Wall -I../inc -I../src -I../../rt_audio_common -lm
 
 # Source files
 SRC = $(filter-out ../src/main.c, $(wildcard ../src/*.c)) $(wildcard *.c)
