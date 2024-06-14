@@ -25,11 +25,6 @@ struct pw_user_data
     struct pw_stream *stream;
 };
 
-static struct
-{
-    rt_stream_packet_t packet;
-} internal = {0};
-
 void *stream_thread(void *arg)
 {
     (void)arg;
