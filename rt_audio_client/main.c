@@ -13,7 +13,8 @@
 
 #define SAMPLES_PER_BUFFER 256
 #define STREAM_PORT 8321
-#define STREAM_IP "100.72.98.49"
+//#define STREAM_IP "100.72.98.49"
+#define STREAM_IP "127.0.0.1"
 
 struct data
 {
@@ -252,6 +253,7 @@ int main(int argc, char *argv[])
     params[0] = spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat,
                                            &SPA_AUDIO_INFO_RAW_INIT(
                                                    .rate = 48000,
+                                                   .channels = 1,
                                                    .format = SPA_AUDIO_FORMAT_F32));
 
     /* Now connect this stream. We ask that our process function is

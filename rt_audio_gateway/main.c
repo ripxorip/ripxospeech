@@ -2,6 +2,11 @@
 
 #include <spa/param/audio/format-utils.h>
 
+#include <pthread.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+
 #include <pipewire/pipewire.h>
 
 #define M_PI_M2 ( M_PI + M_PI )
@@ -12,11 +17,54 @@
 
 #define SAMPLES_PER_BUFFER 256
 
+#define STREAM_PORT 8321
+
 struct data {
         struct pw_main_loop *loop;
         struct pw_stream *stream;
         double accumulator;
 };
+
+typedef struct {
+    uint16_t n_samples;
+    uint64_t seq;
+    uint64_t timestamp;
+    uint16_t samples[SAMPLES_PER_BUFFER];
+} rt_stream_packet_t;
+
+struct {
+    rt_stream_packet_t packet;
+} internal = {0};
+
+void* stream_thread(void* arg) {
+    int sockfd;
+    struct sockaddr_in servaddr;
+
+    // Create socket
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    // Bind socket to the specified PORT
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr.sin_port = htons(STREAM_PORT);
+    bind(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr));
+
+    while (1) {
+        rt_stream_packet_t packet;
+
+        // Receive packet
+        recvfrom(sockfd, &packet, sizeof(packet), 0, NULL, NULL);
+        printf("Received packet with %d samples\n", packet.n_samples);
+        memcpy(&internal.packet, &packet, sizeof(packet));
+
+        // Process packet
+        // ...
+    }
+
+    close(sockfd);
+
+    return NULL;
+}
 
 /* [on_process] */
 static void on_process(void *userdata)
@@ -41,6 +89,7 @@ static void on_process(void *userdata)
         if (b->requested)
                 n_frames = SPA_MIN(b->requested, n_frames);
 
+        #if 0
         for (i = 0; i < n_frames; i++) {
                 data->accumulator += M_PI_M2 * 440 / DEFAULT_RATE;
                 if (data->accumulator >= M_PI_M2)
@@ -56,6 +105,14 @@ static void on_process(void *userdata)
                 for (c = 0; c < DEFAULT_CHANNELS; c++)
                         *dst++ = val;
         }
+        #endif
+
+        for (i = 0; i < n_frames; i++) {
+            for (c = 0; c < DEFAULT_CHANNELS; c++) {
+                *dst++ = internal.packet.samples[i];
+            }
+        }
+
 
         buf->datas[0].chunk->offset = 0;
         buf->datas[0].chunk->stride = stride;
@@ -76,6 +133,7 @@ int main(int argc, char *argv[])
         const struct spa_pod *params[1];
         uint8_t buffer[1024];
         struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
+        pthread_t thread_id;
 
         /* Not the most elegant way of doing this, but it will do for now, will PoC if this will
            even turn out to work or not haha */
@@ -113,10 +171,13 @@ int main(int argc, char *argv[])
                           PW_STREAM_FLAG_RT_PROCESS,
                           params, 1);
 
+        pthread_create(&thread_id, NULL, stream_thread, NULL);
+
         pw_main_loop_run(data.loop);
 
         pw_stream_destroy(data.stream);
         pw_main_loop_destroy(data.loop);
+        pthread_join(thread_id, NULL);
 
         return 0;
 }
