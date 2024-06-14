@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall
-LDFLAGS = -lasound -lm
+CFLAGS += $(shell pkg-config --cflags libpipewire-0.3) -Wall -Wextra
+LDFLAGS = -lm $(shell pkg-config --libs libpipewire-0.3) 
 TARGET = rtaudiogateway
 SRCS = main.c
 OBJS = $(addprefix $(OUTDIR)/, $(SRCS:.c=.o))

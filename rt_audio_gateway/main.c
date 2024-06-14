@@ -1,247 +1,122 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <alsa/asoundlib.h>
-#include <math.h> // Include math.h for sin and M_PI
-#include <unistd.h> // Include unistd.h for sleep
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <pthread.h>
+#include <math.h>
 
-#define SAMPLE_RATE 48000
-#define BUFFER_SIZE 256
-#define PERIOD_SIZE 128
+#include <spa/param/audio/format-utils.h>
 
-#define PORT 8321
+#include <pipewire/pipewire.h>
 
-snd_pcm_t *pcm_handle;
-short *buffer;
-double phase = 0.0;
-double phase_step = 2 * M_PI * 440.0 / SAMPLE_RATE; // Calculate phase step for 440 Hz
+#define M_PI_M2 ( M_PI + M_PI )
 
-typedef struct {
-    uint16_t n_samples;
-    uint64_t seq;
-    uint64_t timestamp;
-    uint16_t samples[BUFFER_SIZE];
-} rt_stream_packet_t;
+#define DEFAULT_RATE            48000
+#define DEFAULT_CHANNELS        2
+#define DEFAULT_VOLUME          0.7
 
-struct {
-    short buffer[2][BUFFER_SIZE];
-    uint32_t ping_pong;
-} internal = {0};
+#define SAMPLES_PER_BUFFER 256
 
-void *stream_thread(void *arg) {
-    int sockfd;
-    struct sockaddr_in servaddr;
-    (void)arg;
+struct data {
+        struct pw_main_loop *loop;
+        struct pw_stream *stream;
+        double accumulator;
+};
 
-    // Create socket
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
+/* [on_process] */
+static void on_process(void *userdata)
+{
+        struct data *data = userdata;
+        struct pw_buffer *b;
+        struct spa_buffer *buf;
+        int i, c, n_frames, stride;
+        int16_t *dst, val;
 
-    memset(&servaddr, 0, sizeof(servaddr));
-
-    // Filling server information
-    servaddr.sin_family = AF_INET; // IPv4
-    servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-
-    // Bind the socket with the server address
-    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-
-    while (1) {
-        rt_stream_packet_t packet;
-        socklen_t len = sizeof(servaddr);
-
-        // Receive data
-        int n = recvfrom(sockfd, &packet, sizeof(packet), 0, (struct sockaddr *)&servaddr, &len);
-        if (n < 0) {
-            perror("recvfrom failed");
-        }
-        if (n != sizeof(packet)) {
-            fprintf(stderr, "Received packet of unexpected size: %d\n", n);
-            continue;
+        if ((b = pw_stream_dequeue_buffer(data->stream)) == NULL) {
+                pw_log_warn("out of buffers: %m");
+                return;
         }
 
-        short *dest = internal.ping_pong ? internal.buffer[1] : internal.buffer[0];
-        memcpy(dest, packet.samples, sizeof(packet.samples));
-        printf("Received packet with %d samples\n", packet.n_samples);
-    }
+        buf = b->buffer;
+        if ((dst = buf->datas[0].data) == NULL)
+                return;
+
+        stride = sizeof(int16_t) * DEFAULT_CHANNELS;
+        n_frames = buf->datas[0].maxsize / stride;
+        if (b->requested)
+                n_frames = SPA_MIN(b->requested, n_frames);
+
+        for (i = 0; i < n_frames; i++) {
+                data->accumulator += M_PI_M2 * 440 / DEFAULT_RATE;
+                if (data->accumulator >= M_PI_M2)
+                        data->accumulator -= M_PI_M2;
+
+                /* sin() gives a value between -1.0 and 1.0, we first apply
+                 * the volume and then scale with 32767.0 to get a 16 bits value
+                 * between [-32767 32767].
+                 * Another common method to convert a double to
+                 * 16 bits is to multiple by 32768.0 and then clamp to
+                 * [-32768 32767] to get the full 16 bits range. */
+                val = sin(data->accumulator) * DEFAULT_VOLUME * 32767.0;
+                for (c = 0; c < DEFAULT_CHANNELS; c++)
+                        *dst++ = val;
+        }
+
+        buf->datas[0].chunk->offset = 0;
+        buf->datas[0].chunk->stride = stride;
+        buf->datas[0].chunk->size = n_frames * stride;
+
+        pw_stream_queue_buffer(data->stream, b);
 }
+/* [on_process] */
 
-void callback(snd_async_handler_t *handler) {
-    (void)handler; // Suppress unused variable warning (handler is used in the callback signature
-    int err;
+static const struct pw_stream_events stream_events = {
+        PW_VERSION_STREAM_EVENTS,
+        .process = on_process,
+};
 
-    /*
-    for (snd_pcm_uframes_t i = 0; i < BUFFER_SIZE * 2; i += 2) { // 2 channels
-        short sample = (short)(32767.0 * sin(phase));
-        buffer[i] = sample; // left channel
-        buffer[i + 1] = sample; // right channel
-        phase += phase_step;
-        if (phase > 2 * M_PI) phase -= 2 * M_PI; // Keep phase within [0, 2*pi]
-    }
-    */
+int main(int argc, char *argv[])
+{
+        struct data data = { 0, };
+        const struct spa_pod *params[1];
+        uint8_t buffer[1024];
+        struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
 
-       short *src = internal.buffer[0];
-       for (snd_pcm_uframes_t i = 0; i < BUFFER_SIZE; i++) {
-        buffer[i * 2] = src[i];     // left channel
-        buffer[i * 2 + 1] = src[i]; // right channel
-       }
+        /* Not the most elegant way of doing this, but it will do for now, will PoC if this will
+           even turn out to work or not haha */
+        char latency[20];
+        sprintf(latency, "%d/48000", SAMPLES_PER_BUFFER);
+        setenv("PIPEWIRE_LATENCY", latency, 1);
 
-    // Write data to PCM device
-    if ((err = snd_pcm_writei(pcm_handle, buffer, BUFFER_SIZE)) < 0) {
-        fprintf(stderr, "Write to PCM device failed: %s\n", snd_strerror(err));
-    }
-}
+        pw_init(&argc, &argv);
 
-int main() {
-    int err;
-    snd_pcm_hw_params_t *params;
-    unsigned int rate = SAMPLE_RATE;
-    snd_pcm_uframes_t buffer_size = BUFFER_SIZE;
-    snd_pcm_uframes_t period_size = PERIOD_SIZE;
+        data.loop = pw_main_loop_new(NULL);
 
-    // Open PCM device for playback
-    if ((err = snd_pcm_open(&pcm_handle, "hw:1,0", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-        fprintf(stderr, "Cannot open PCM device: %s\n", snd_strerror(err));
-        exit(1);
-    }
+        data.stream = pw_stream_new_simple(
+                        pw_main_loop_get_loop(data.loop),
+                        "audio-src",
+                        pw_properties_new(
+                                PW_KEY_MEDIA_TYPE, "Audio",
+                                PW_KEY_MEDIA_CATEGORY, "Playback",
+                                PW_KEY_MEDIA_ROLE, "Music",
+                                PW_KEY_TARGET_OBJECT, "alsa_output.pci-0000_09_00.6.analog-stereo",  // Specify your desired audio interface here
+                                NULL),
+                        &stream_events,
+                        &data);
 
-    // Allocate hardware parameters object
-    if ((err = snd_pcm_hw_params_malloc(&params)) < 0) {
-        fprintf(stderr, "Cannot allocate hardware parameter structure: %s\n", snd_strerror(err));
-        exit(1);
-    }
+        params[0] = spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat,
+                        &SPA_AUDIO_INFO_RAW_INIT(
+                                .format = SPA_AUDIO_FORMAT_S16,
+                                .channels = DEFAULT_CHANNELS,
+                                .rate = DEFAULT_RATE ));
 
-    // Initialize hardware parameters with default values
-    if ((err = snd_pcm_hw_params_any(pcm_handle, params)) < 0) {
-        fprintf(stderr, "Cannot initialize hardware parameter structure: %s\n", snd_strerror(err));
-        exit(1);
-    }
+        pw_stream_connect(data.stream,
+                          PW_DIRECTION_OUTPUT,
+                          PW_ID_ANY,
+                          PW_STREAM_FLAG_AUTOCONNECT |
+                          PW_STREAM_FLAG_MAP_BUFFERS |
+                          PW_STREAM_FLAG_RT_PROCESS,
+                          params, 1);
 
-    // Set access type
-    if ((err = snd_pcm_hw_params_set_access(pcm_handle, params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-        fprintf(stderr, "Cannot set access type: %s\n", snd_strerror(err));
-        exit(1);
-    }
+        pw_main_loop_run(data.loop);
 
-    // Set sample format
-    if ((err = snd_pcm_hw_params_set_format(pcm_handle, params, SND_PCM_FORMAT_S16_LE)) < 0) {
-        fprintf(stderr, "Cannot set sample format: %s\n", snd_strerror(err));
-        exit(1);
-    }
+        pw_stream_destroy(data.stream);
+        pw_main_loop_destroy(data.loop);
 
-    // Set sample rate
-    if ((err = snd_pcm_hw_params_set_rate_near(pcm_handle, params, &rate, 0)) < 0) {
-        fprintf(stderr, "Cannot set sample rate: %s\n", snd_strerror(err));
-        exit(1);
-    }
-
-    // Set buffer size
-    if ((err = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, params, &buffer_size)) < 0) {
-        fprintf(stderr, "Cannot set buffer size: %s\n", snd_strerror(err));
-        exit(1);
-    }
-
-    // Set period size
-    if ((err = snd_pcm_hw_params_set_period_size_near(pcm_handle, params, &period_size, 0)) < 0) {
-        fprintf(stderr, "Cannot set period size: %s\n", snd_strerror(err));
-        exit(1);
-    }
-
-    // Apply hardware parameters
-    if ((err = snd_pcm_hw_params(pcm_handle, params)) < 0) {
-        fprintf(stderr, "Cannot set hardware parameters: %s\n", snd_strerror(err));
-        exit(1);
-    }
-
-    // Allocate buffer
-    buffer = (short *)malloc(buffer_size * 2 * sizeof(short)); // 2 channels, 2 bytes per channel
-
-    snd_pcm_poll_descriptors_count(pcm_handle);
-    struct pollfd fd;
-
-    if ((err = snd_pcm_poll_descriptors(pcm_handle, &fd, 1)) < 0) {
-        fprintf(stderr, "Cannot get poll descriptors: %s\n", snd_strerror(err));
-        exit(1);
-    }
-
-    callback(NULL);
-
-    int sockfd;
-    struct sockaddr_in servaddr;
-
-    // Create socket
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
-
-    memset(&servaddr, 0, sizeof(servaddr));
-
-    // Filling server information
-    servaddr.sin_family = AF_INET; // IPv4
-    servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-
-    // Bind the socket with the server address
-    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-
-    rt_stream_packet_t packet;
-    //socklen_t len = sizeof(servaddr);
-
-    // Main loop
-    while (1) {
-        fd_set rd_set;  // Read set
-        fd_set wr_set;  // Write set
-        FD_ZERO(&rd_set);
-        FD_ZERO(&wr_set);
-        FD_SET(fd.fd, &wr_set);
-        FD_SET(sockfd, &rd_set);  // Add the sockfd to the read set
-
-        struct timeval timeout;
-        timeout.tv_sec = 0;  // Zero seconds
-        timeout.tv_usec = 0; // Zero microseconds
-                             // Use the maximum of fd.fd and sockfd plus 1 as the first parameter
-        int max_fd = fd.fd > sockfd ? fd.fd : sockfd;
-        select(max_fd + 1, &rd_set, &wr_set, NULL, &timeout);
-
-        //printf("select returned %d\n", r);
-
-        if (FD_ISSET(fd.fd, &wr_set)) {
-            // fd.fd is ready for writing
-            callback(NULL);
-        }
-
-        if (FD_ISSET(sockfd, &rd_set)) {
-            ssize_t bytes_read = read(sockfd, &packet, sizeof(packet));
-            if (bytes_read < 0) {
-                perror("read failed");
-            }
-            else {
-                memcpy(internal.buffer[0], packet.samples, sizeof(packet.samples));
-            }
-        }
-    }
-
-    // Cleanup
-    //pthread_join(thread, NULL);
-    free(buffer);
-    snd_pcm_close(pcm_handle);
-    snd_pcm_hw_params_free(params);
-
-    // FIXME perhaps not use two threads, sufficient with one instead?
-    // Yeah, probably go back to single thread again...
-
-    return 0;
+        return 0;
 }

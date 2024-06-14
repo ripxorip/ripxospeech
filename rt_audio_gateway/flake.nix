@@ -1,5 +1,5 @@
 {
-  description = "Flake for the rt audio gateway";
+  description = "Flake for the rt audio client";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
@@ -35,7 +35,8 @@
       devShell = pkgs.mkShell {
         buildInputs = with pkgs; [
           gcc
-          alsa-lib.dev
+          pkg-config
+          pipewire.dev
         ];
       };
     });
