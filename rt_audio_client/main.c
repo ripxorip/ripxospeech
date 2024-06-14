@@ -14,8 +14,8 @@
 #include "stream_packet.h"
 
 #define STREAM_PORT 8321
-// #define STREAM_IP "100.72.98.49"
-#define STREAM_IP "127.0.0.1"
+// #define STREAM_IP "127.0.0.1"
+#define STREAM_IP "100.100.250.30"
 
 struct data
 {
