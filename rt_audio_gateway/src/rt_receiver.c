@@ -5,7 +5,6 @@
 
 static struct {
     int buffer_size;
-    rt_stream_packet_t packet;
     ring_buffer_t *buffer;
     pthread_mutex_t lock;
 } internal = {0};
@@ -17,17 +16,26 @@ void rt_rcv_init(int buffer_size) {
 }
 
 void rt_rcv_add_packet(rt_stream_packet_t *packet) {
+
     pthread_mutex_lock(&internal.lock);
-    memcpy(&internal.packet, packet, sizeof(rt_stream_packet_t));
+    ring_buffer_push(internal.buffer, packet);
     pthread_mutex_unlock(&internal.lock);
+
 }
 
 /* Audio device requests one frame */
 void rt_rcv_get_samples(int16_t *samples, int n_frames, int n_channels) {
     int16_t *dst = samples;
+    /* Packet to send */
+    rt_stream_packet_t packet;
+
+    pthread_mutex_lock(&internal.lock);
+    ring_buffer_pop(internal.buffer, &packet);
+    pthread_mutex_unlock(&internal.lock);
+
     for (int i = 0; i < n_frames; i++) {
         for (int c = 0; c < n_channels; c++) {
-            *dst++ = internal.packet.samples[i];
+            *dst++ = packet.samples[i];
         }
     }
 }
