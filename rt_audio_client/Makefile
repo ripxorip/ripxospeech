@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS += $(shell pkg-config --cflags libpipewire-0.3) -Wall -Wextra -Werror
+CFLAGS += $(shell pkg-config --cflags libpipewire-0.3) -I../rt_audio_common -Wall
 LDFLAGS = -lm $(shell pkg-config --libs libpipewire-0.3) 
 TARGET = rtaudioclient
 SRCS = main.c

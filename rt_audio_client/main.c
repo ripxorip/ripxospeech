@@ -11,9 +11,10 @@
 
 #include <pipewire/pipewire.h>
 
-#define SAMPLES_PER_BUFFER 256
+#include "stream_packet.h"
+
 #define STREAM_PORT 8321
-//#define STREAM_IP "100.72.98.49"
+// #define STREAM_IP "100.72.98.49"
 #define STREAM_IP "127.0.0.1"
 
 struct data
@@ -25,23 +26,19 @@ struct data
     unsigned move : 1;
 };
 
-struct {
+struct
+{
     uint32_t seq;
     int sockfd;
     struct sockaddr_in servaddr;
 } internal = {0};
 
-typedef struct {
-    uint16_t n_samples;
-    uint64_t seq;
-    uint64_t timestamp;
-    uint16_t samples[SAMPLES_PER_BUFFER];
-} rt_stream_packet_t;
-
-void setup_socket() {
+void setup_socket()
+{
     // Create a socket
     internal.sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (internal.sockfd < 0) {
+    if (internal.sockfd < 0)
+    {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
@@ -74,12 +71,13 @@ static void stream_buffer(uint16_t *samples, uint32_t n_samples)
 
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    uint64_t timestamp = ts.tv_sec * 1000000000 + ts.tv_nsec;   
+    uint64_t timestamp = ts.tv_sec * 1000000000 + ts.tv_nsec;
 
     packet.timestamp = timestamp;
 
-     // Send the packet
-    if (sendto(internal.sockfd, &packet, sizeof(packet), 0, (struct sockaddr*)&internal.servaddr, sizeof(internal.servaddr)) < 0) {
+    // Send the packet
+    if (sendto(internal.sockfd, &packet, sizeof(packet), 0, (struct sockaddr *)&internal.servaddr, sizeof(internal.servaddr)) < 0)
+    {
         perror("sendto failed");
     }
 }
@@ -101,8 +99,8 @@ static void on_process(void *userdata)
     float *samples, max;
     uint32_t c, n, n_channels, n_samples, peak;
 
-    static float fbuf[SAMPLES_PER_BUFFER];
-    static uint16_t sbuf[SAMPLES_PER_BUFFER];
+    static float fbuf[RT_STREAM_PACKET_FRAME_SIZE];
+    static uint16_t sbuf[RT_STREAM_PACKET_FRAME_SIZE];
 
     if ((b = pw_stream_dequeue_buffer(data->stream)) == NULL)
     {
@@ -143,8 +141,8 @@ static void on_process(void *userdata)
     data->move = true;
     fflush(stdout);
 
-    convert_buffer(fbuf, sbuf, SAMPLES_PER_BUFFER);
-    stream_buffer(sbuf, SAMPLES_PER_BUFFER);
+    convert_buffer(fbuf, sbuf, RT_STREAM_PACKET_FRAME_SIZE);
+    stream_buffer(sbuf, RT_STREAM_PACKET_FRAME_SIZE);
 
     pw_stream_queue_buffer(data->stream, b);
 }
@@ -201,10 +199,8 @@ int main(int argc, char *argv[])
 
     setup_socket();
 
-    /* Not the most elegant way of doing this, but it will do for now, will PoC if this will
-       even turn out to work or not haha */
     char latency[20];
-    sprintf(latency, "%d/48000", SAMPLES_PER_BUFFER);
+    sprintf(latency, "%d/48000", RT_STREAM_PACKET_FRAME_SIZE);
     setenv("PIPEWIRE_LATENCY", latency, 1);
 
     pw_init(&argc, &argv);
