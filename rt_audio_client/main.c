@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
+#include <unistd.h>
 
 #include <spa/param/audio/format-utils.h>
 
@@ -13,9 +15,13 @@
 
 #include "stream_packet.h"
 
-#define STREAM_PORT 8321
-// #define STREAM_IP "127.0.0.1"
+//#define STREAM_IP "127.0.0.1"
 #define STREAM_IP "100.100.250.30"
+#define STREAM_PORT 8321
+
+#define SAMPLE_RATE 48000
+
+#define TEST_MODE 1
 
 struct data
 {
@@ -31,6 +37,9 @@ struct
     uint32_t seq;
     int sockfd;
     struct sockaddr_in servaddr;
+    int test_mode;
+    int sine_active;
+    float sine_phase;
 } internal = {0};
 
 void setup_socket()
@@ -82,6 +91,21 @@ static void stream_buffer(uint16_t *samples, uint32_t n_samples)
     }
 }
 
+static void* listen_for_input(void *arg)
+{
+    char buffer[1024];
+    int n;
+
+    while (1)
+    {
+        n = read(0, buffer, 1024);
+        (void)n;
+        internal.sine_active = !internal.sine_active;
+    }
+
+    return NULL;
+}
+
 /* our data processing function is in general:
  *
  *  struct pw_buffer *b;
@@ -114,6 +138,28 @@ static void on_process(void *userdata)
 
     n_channels = data->format.info.raw.channels;
     n_samples = buf->datas[0].chunk->size / sizeof(float);
+
+    if (internal.test_mode)
+    {
+        if (internal.sine_active) {
+            for (n = 0; n < n_samples; n++)
+            {
+                samples[n] = sinf(internal.sine_phase) * 0.5;
+                internal.sine_phase += 2 * M_PI * 440 / SAMPLE_RATE;
+                if (internal.sine_phase >= 2 * M_PI)
+                {
+                    internal.sine_phase -= 2 * M_PI;
+                }
+            }
+        }
+        else
+        {
+            for (n = 0; n < n_samples; n++)
+            {
+                samples[n] = 0.0f;
+            }
+        }
+    }
 
     /* move cursor up */
     if (data->move)
@@ -189,6 +235,15 @@ static void do_quit(void *userdata, int signal_number)
 
 int main(int argc, char *argv[])
 {
+    internal.test_mode = TEST_MODE;
+
+    if (internal.test_mode)
+    {
+        printf("Test mode activated\n");
+        pthread_t input_thread;
+        pthread_create(&input_thread, NULL, listen_for_input, NULL);
+    }
+
     struct data data = {
         0,
     };
@@ -248,7 +303,7 @@ int main(int argc, char *argv[])
      * rate and channels. */
     params[0] = spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat,
                                            &SPA_AUDIO_INFO_RAW_INIT(
-                                                   .rate = 48000,
+                                                   .rate = SAMPLE_RATE,
                                                    .channels = 1,
                                                    .format = SPA_AUDIO_FORMAT_F32));
 
