@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "rt_receiver.h": "c",
+        "stream_packet.h": "c"
+    }
+}
