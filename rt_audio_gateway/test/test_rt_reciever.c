@@ -24,7 +24,7 @@ void generate_sine_s16(int16_t *samples, int num_samples) {
 void test_when_in_sync() {
     printf("::Test when in sync::\n");
     const int num_frames = 128;
-    const int buffer_size = 0;
+    const int buffer_size = 3;
     rt_rcv_init(buffer_size);
 
     // Allocate memory for a sine consisting of 128 frames
