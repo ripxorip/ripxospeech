@@ -16,23 +16,26 @@ namespace win11_keysender
 
         private bool running = false;
 
+        // Variable to keep what mode we are in
+        private bool talon_mode = true;
+
         private Dictionary<string, int> charToKeyCombo = new Dictionary<string, int>()
         {
             /* Handle åäö separately */
-            { "esc", 0x09},
-            { "1", 0x0A},
-            { "2", 0x0B},
-            { "3", 0x0C},
-            { "4", 0x0D},
-            { "5", 0x0E},
-            { "6", 0x0F},
-            { "7", 0x10},
-            { "8", 0x11},
-            { "9", 0x12},
-            { "0", 0x13},
-            { "minus", 0x14},
-            { "equal", 0x15},
-            { "backspace", 0x16},
+            { "escape", 0x09},
+            { "d1", 0x0A},
+            { "d2", 0x0B},
+            { "d3", 0x0C},
+            { "d4", 0x0D},
+            { "d5", 0x0E},
+            { "d6", 0x0F},
+            { "d7", 0x10},
+            { "d8", 0x11},
+            { "d9", 0x12},
+            { "d0", 0x13},
+            { "oemminus", 0x14},
+            { "oemplus", 0x15},
+            { "back", 0x16},
             { "tab", 0x17},
             { "q", 0x18},
             { "w", 0x19},
@@ -44,10 +47,10 @@ namespace win11_keysender
             { "i", 0x1F},
             { "o", 0x20},
             { "p", 0x21},
-            { "leftbrace", 0x22},
-            { "rightbrace", 0x23},
-            { "enter", 0x24},
-            { "leftctrl", 0x25},
+            { "oemopenbrackets", 0x22},
+            { "oem6", 0x23},
+            { "return", 0x24},
+            { "controlkey", 0x25},
             { "a", 0x26},
             { "s", 0x27},
             { "d", 0x28},
@@ -60,8 +63,8 @@ namespace win11_keysender
             { "semicolon", 0x2F},
             { "'", 0x30},
             { "grave", 0x31},
-            { "leftshift", 0x32},
-            { "backslash", 0x33},
+            { "shiftkey", 0x32},
+            { "oemquestion_alt", 0x33},
             { "z", 0x34},
             { "x", 0x35},
             { "c", 0x36},
@@ -69,13 +72,13 @@ namespace win11_keysender
             { "b", 0x38},
             { "n", 0x39},
             { "m", 0x3A},
-            { ",", 0x3B},
-            { ".", 0x3C},
-            { "/", 0x3D},
+            { "oemcomma", 0x3B},
+            { "oemperiod", 0x3C},
+            { "oemquestion", 0x3D},
             { "rightshift", 0x3E},
             { "kpasterisk", 0x3F},
-            { "leftalt", 0x40},
-            { " ", 0x41},
+            { "menu", 0x40},
+            { "space", 0x41},
             { "capslock", 0x42},
             { "f1", 0x43},
             { "f2", 0x44},
@@ -160,6 +163,60 @@ namespace win11_keysender
             udpClient = new UdpClient(5000);
             udpClient.BeginReceive(new AsyncCallback(ReceiveCallback), null);
             //unittest_test_handle_text_change();
+            textBox1.PreviewKeyDown += new PreviewKeyDownEventHandler(textBox1_PreviewKeyDown);
+            textBox1.KeyUp += new KeyEventHandler(textBox1_KeyUp);
+        }
+
+        // TODO
+        // This method is catching all the keystrokes, as such it is a good candidate to receive all the keystrokes also sent by Talon
+        // The next step is to introduce a second mode in this module which will handle talon commands,
+        // it also needs some refactoring and better naming.
+        private void textBox1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (!talon_mode) { return; }
+            // Print the key that was pressed
+            Debug.Print("Key pressed: " + e.KeyCode.ToString());
+            var keystr = e.KeyCode.ToString();
+            // Convert to lower
+            keystr = keystr.ToLower();
+            // Get the code from lookup table
+            if (charToKeyCombo.ContainsKey(keystr))
+            {
+                int keyCode = charToKeyCombo[keystr];
+                Debug.Print(" *FOUND * Key code: " + keyCode);
+                // Send the key
+                send_key(keyCode, true);
+            }
+            else
+            {
+                Debug.Print("Key --not-- found in dict: " + keystr);
+            }
+            // Print the keycoade as hex
+            //Debug.Print("Key pressed as hex: " + ((int)e.KeyCode).ToString("X"));
+        }
+
+        private void textBox1_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (!talon_mode) { return; }
+            var keystr = e.KeyCode.ToString();
+            // Convert to lower
+            keystr = keystr.ToLower();
+            // Get the code from lookup table
+            if (charToKeyCombo.ContainsKey(keystr))
+            {
+                int keyCode = charToKeyCombo[keystr];
+                Debug.Print(" *FOUND * Key code: " + keyCode);
+                // Send the key
+                send_key(keyCode, false);
+            }
+            else
+            {
+                Debug.Print("Key --not-- found in dict: " + keystr);
+            }
+            // Print the keycoade as hex
+            //Debug.Print("Key pressed as hex: " + ((int)e.KeyCode).ToString("X"));
+            // Print the key that was released
+            //Debug.Print("Key released: " + e.KeyCode.ToString());
         }
 
         private void stop() {
@@ -376,6 +433,8 @@ namespace win11_keysender
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
+            // If in talon mode, do nothing
+            if (talon_mode) { return; }
             string inputText = textBox1.Text;
             handle_text_change(inputText);
         }
