@@ -32,6 +32,13 @@ Currently (2023/12/17) setup everything accordingly:
 - Route audio from client (can be any client)
 - In voiceboxlinux Manually route the audio according to this screenshot: ![Routing Screenshot](doc/img/0.png)
 
+## TODOs
+- Update this readme..
+- I have decided to not use Linux for the Talon slave, consequently I am going to use Windows for that as well.
+  The next step is to be able to get those keyboard events from the same application which is currently being
+  used to fetch the keyboard strokes from Windows 11 own speech to text service. This application is called
+  win11_keysender and it is written in C#.
+
 ### Using
 
 Instructions for how to use your project. For example:

@@ -8,7 +8,6 @@ from keyboard_server.keycodes import *
 from keyboard_server.serial_backend import *
 from keyboard_server.virtual_backend import *
 from keyboard_server.utils import *
-from keyboard_server.doublethink import *
 from utils.constants import *
 
 NULL_CHAR = chr(0)
@@ -59,16 +58,6 @@ class KeyboardServer:
         self.ip = subprocess.check_output(["tailscale", "ip", "-4"]).decode("utf-8").strip()
         self.incoming_command_ckb = incoming_command_ckb
         self.win_lang = "SV"
-
-        # Tribute to 1984
-        # The Doubluthinks shall be selectable by the user if active or not
-        self.dts = {'se': Doublethink('se'), 'en_talon': Doublethink('en'), 'en_win': Doublethink('en')}
-
-        self.dts['se'].set_emit_keyevent(self.handle_keyevent)
-        self.dts['en_talon'].set_emit_keyevent(self.handle_keyevent)
-        self.dts['en_win'].set_emit_keyevent(self.handle_keyevent)
-
-        self.dt = None
 
     def key_press(self, key):
         pressed_key = x11_key_code_to_name[key]
@@ -133,27 +122,18 @@ class KeyboardServer:
         if cmd != "toggle_win_lang" and self.incoming_command_ckb:
             self.incoming_command_ckb(cmd)
         if cmd == "stop":
-            self.dt = None
             send_udp_string("engine_win11_swe", 5000, "stop")
             send_udp_string("engine_talon", 5000, "stop")
             send_udp_string("engine_talon", 5005, "stop")
         elif cmd == "start_talon_command":
-            self.dt = None
             send_udp_string("engine_win11_swe", 5000, "stop")
             send_udp_string("engine_talon", 5005, "stop")
             send_udp_string("engine_talon", 5000, "start_command@{}".format(self.ip))
         elif cmd == "start_talon_dictation":
-            self.dt = self.dts['en_talon']
-            self.dt.arm()
             send_udp_string("engine_win11_swe", 5000, "stop")
             send_udp_string("engine_talon", 5005, "stop")
             send_udp_string("engine_talon", 5000, "start_dictation@{}".format(self.ip))
         elif cmd == "start_win11_swe":
-            if self.win_lang == "SV":
-                self.dt = self.dts['se']
-            elif self.win_lang == "EN":
-                self.dt = self.dts['en_win']
-            self.dt.arm()
             send_udp_string("engine_talon", 5000, "stop")
             send_udp_string("engine_talon", 5005, "stop")
             send_udp_string("engine_win11_swe", 5000, "start@{}".format(self.ip))
@@ -173,13 +153,9 @@ class KeyboardServer:
         elif key == 'f2':
             self.handle_incoming_command("start_win11_swe")
         elif key == 'f3':
-            if self.dt == None:
-                self.handle_incoming_command("start_talon_dictation")
-            else:
-                self.dt.redo()
+            self.handle_incoming_command("start_talon_dictation")
         elif key == 'f4':
-            if self.dt != None:
-                self.dt.undo()
+            pass
         elif key == 'f8':
             pass
         elif key == 'f9':
@@ -234,10 +210,7 @@ class KeyboardServer:
             except ValueError:
                 print(f"Invalid message: {message}")
                 continue
-            if self.dt:
-                self.dt.handle_keyevent(keycode, event_type)
-            else:
-                self.handle_keyevent(keycode, event_type)
+            self.handle_keyevent(keycode, event_type)
 
         # cleanup
         sock.close()
