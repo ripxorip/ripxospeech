@@ -21,6 +21,33 @@ namespace win11_keysender
 
         private Dictionary<string, int> charToKeyCombo = new Dictionary<string, int>()
         {
+            /* These are needed as is for Windows native dictation */
+            { "esc", 0x09},
+            { "1", 0x0A},
+            { "2", 0x0B},
+            { "3", 0x0C},
+            { "4", 0x0D},
+            { "5", 0x0E},
+            { "6", 0x0F},
+            { "7", 0x10},
+            { "8", 0x11},
+            { "9", 0x12},
+            { "0", 0x13},
+            { "minus", 0x14},
+            { "equal", 0x15},
+            { "backspace", 0x16},
+            { "leftbrace", 0x22},
+            { "rightbrace", 0x23},
+            { "enter", 0x24},
+            { "leftctrl", 0x25},
+            { "leftshift", 0x32},
+            { "backslash", 0x33},
+            { ",", 0x3B},
+            { ".", 0x3C},
+            { "/", 0x3D},
+            { "leftalt", 0x40},
+            { " ", 0x41},
+
             /* Handle åäö separately */
             { "escape", 0x09},
             { "d1", 0x0A},
@@ -223,6 +250,7 @@ namespace win11_keysender
             // Send the escape key (stop the dictation)
             var simulator = new InputSimulator();
             simulator.Keyboard.KeyPress(VirtualKeyCode.ESCAPE);
+            simulator.Keyboard.KeyPress(VirtualKeyCode.F10);
             voiceboxclient_ip = "";
 
             this.Invoke((MethodInvoker)delegate
@@ -232,6 +260,7 @@ namespace win11_keysender
             });
 
             running = false;
+            talon_mode = false;
         }
 
         private void ReceiveCallback(IAsyncResult ar)
@@ -242,6 +271,7 @@ namespace win11_keysender
 
             if (inputText.StartsWith("start@"))
             {
+                talon_mode = false;
                 if (running) { 
                     stop();
                     Thread.Sleep(500);
@@ -253,6 +283,42 @@ namespace win11_keysender
                     voiceboxclient_ip = parts[1];
                     var simulator = new InputSimulator();
                     simulator.Keyboard.ModifiedKeyStroke(VirtualKeyCode.LWIN, VirtualKeyCode.VK_H);
+                }
+            }
+
+            if (inputText.StartsWith("start_talon_command@"))
+            {
+                if (running) { 
+                    stop();
+                }
+
+                running = true;
+                talon_mode = true;
+                string[] parts = inputText.Split('@');
+
+                if (parts.Length == 2)
+                {
+                    voiceboxclient_ip = parts[1];
+                    var simulator = new InputSimulator();
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.F9);
+                }
+            }
+
+            if (inputText.StartsWith("start_talon_dictation@"))
+            {
+                if (running) { 
+                    stop();
+                }
+
+                talon_mode = true;
+                running = true;
+                string[] parts = inputText.Split('@');
+
+                if (parts.Length == 2)
+                {
+                    voiceboxclient_ip = parts[1];
+                    var simulator = new InputSimulator();
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.F11);
                 }
             }
 
