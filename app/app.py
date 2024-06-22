@@ -95,6 +95,7 @@ class App:
         self.winLang = lang
         # FIXME This is too hacky
         self.server.win_lang = lang
+        return lang
 
     def keyboard_server(self):
         backend = 'virtual'
@@ -137,6 +138,8 @@ class App:
             self.get_win_lang()
             self.update_gui_state()
             self.gui_callback(self.gui_state)
+        elif cmd == "get_win_lang":
+            return self.get_win_lang()
         elif cmd != "":
             self.running_engine = cmd
             if cmd == "stop":
