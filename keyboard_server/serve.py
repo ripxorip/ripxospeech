@@ -128,11 +128,11 @@ class KeyboardServer:
         elif cmd == "start_talon_command":
             send_udp_string("engine_win11_swe", 5000, "stop")
             send_udp_string("engine_talon", 5005, "stop")
-            send_udp_string("engine_talon", 5000, "start_command@{}".format(self.ip))
+            send_udp_string("engine_win11_swe", 5000, "start_talon_command@{}".format(self.ip))
         elif cmd == "start_talon_dictation":
             send_udp_string("engine_win11_swe", 5000, "stop")
             send_udp_string("engine_talon", 5005, "stop")
-            send_udp_string("engine_talon", 5000, "start_dictation@{}".format(self.ip))
+            send_udp_string("engine_win11_swe", 5000, "start_talon_dictation@{}".format(self.ip))
         elif cmd == "start_win11_swe":
             send_udp_string("engine_talon", 5000, "stop")
             send_udp_string("engine_talon", 5005, "stop")
