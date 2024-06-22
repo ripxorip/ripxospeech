@@ -203,7 +203,6 @@ namespace win11_keysender
         {
             if (!talon_mode) { return; }
             // Print the key that was pressed
-            Debug.Print("Key pressed: " + e.KeyCode.ToString());
             var keystr = e.KeyCode.ToString();
             // Convert to lower
             keystr = keystr.ToLower();
@@ -211,7 +210,6 @@ namespace win11_keysender
             if (charToKeyCombo.ContainsKey(keystr))
             {
                 int keyCode = charToKeyCombo[keystr];
-                Debug.Print(" *FOUND * Key code: " + keyCode);
                 // Send the key
                 send_key(keyCode, true);
             }
@@ -233,7 +231,6 @@ namespace win11_keysender
             if (charToKeyCombo.ContainsKey(keystr))
             {
                 int keyCode = charToKeyCombo[keystr];
-                Debug.Print(" *FOUND * Key code: " + keyCode);
                 // Send the key
                 send_key(keyCode, false);
             }
@@ -484,6 +481,15 @@ namespace win11_keysender
                     processKey(c.ToString());
                     sentText += c;
                 }
+            }
+            // If sentText is longer than inputText, send backspaces for the remaining characters
+            if (sentText.Length > inputText.Length)
+            {
+                for (int i = sentText.Length; i > inputText.Length; i--)
+                {
+                    processKey("backspace");
+                }
+                sentText = sentText.Substring(0, inputText.Length);
             }
         }
 
