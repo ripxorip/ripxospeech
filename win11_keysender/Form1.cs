@@ -47,6 +47,7 @@ namespace win11_keysender
             { "/", 0x3D},
             { "leftalt", 0x40},
             { " ", 0x41},
+            { "'", 0x30},
 
             /* Handle åäö separately */
             { "escape", 0x09},
@@ -88,7 +89,7 @@ namespace win11_keysender
             { "k", 0x2D},
             { "l", 0x2E},
             { "semicolon", 0x2F},
-            { "'", 0x30},
+            { "oem7", 0x30},
             { "grave", 0x31},
             { "shiftkey", 0x32},
             { "oemquestion_alt", 0x33},
