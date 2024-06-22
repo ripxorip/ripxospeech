@@ -335,6 +335,12 @@ namespace win11_keysender
                 simulator.Keyboard.ModifiedKeyStroke(new[] {  VirtualKeyCode.CONTROL, VirtualKeyCode.SHIFT }, VirtualKeyCode.F5);
             }
 
+            else if (inputText == "toggle-lang-lazy")
+            {
+                var simulator = new InputSimulator();
+                simulator.Keyboard.ModifiedKeyStroke(VirtualKeyCode.LWIN, VirtualKeyCode.SPACE);
+            }
+
             else if (inputText == "get-current-lang")
             {
                 // Take a screenshot of a specific area
