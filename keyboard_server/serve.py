@@ -140,9 +140,6 @@ class KeyboardServer:
             send_udp_string("engine_talon", 5005, "stop")
             send_udp_string("engine_win11_swe", 5000, "start_talon_dictation@{}".format(self.ip))
         elif cmd == "start_win11_swe":
-            lang = self.incoming_command_ckb("get_win_lang")
-            if lang != "SV":
-                self.handle_incoming_command("toggle_win_lang")
             send_udp_string("engine_talon", 5000, "stop")
             send_udp_string("engine_talon", 5005, "stop")
             send_udp_string("engine_win11_swe", 5000, "start@{}".format(self.ip))
