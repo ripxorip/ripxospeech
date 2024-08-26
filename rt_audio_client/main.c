@@ -123,6 +123,8 @@ static void on_process(void *userdata)
     float *samples, max;
     uint32_t c, n, n_channels, n_samples, peak;
 
+    static int count = 0;
+
     static float fbuf[RT_STREAM_PACKET_FRAME_SIZE];
     static uint16_t sbuf[RT_STREAM_PACKET_FRAME_SIZE];
 
@@ -168,7 +170,6 @@ static void on_process(void *userdata)
     for (c = 0; c < data->format.info.raw.channels; c++)
     {
         max = 0.0f;
-        int count = 0;
         for (n = c; n < n_samples; n += n_channels)
         {
             max = fmaxf(max, fabsf(samples[n]));
@@ -187,8 +188,13 @@ static void on_process(void *userdata)
     data->move = true;
     fflush(stdout);
 
-    convert_buffer(fbuf, sbuf, RT_STREAM_PACKET_FRAME_SIZE);
-    stream_buffer(sbuf, RT_STREAM_PACKET_FRAME_SIZE);
+    if (count == RT_STREAM_PACKET_FRAME_SIZE)
+    {
+        convert_buffer(fbuf, sbuf, RT_STREAM_PACKET_FRAME_SIZE);
+        stream_buffer(sbuf, RT_STREAM_PACKET_FRAME_SIZE);
+        count = 0;
+    }
+
 
     pw_stream_queue_buffer(data->stream, b);
 }
